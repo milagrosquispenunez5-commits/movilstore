@@ -416,6 +416,34 @@
         transform: scale(1.1);
       }
 
+      /* WHATSAPP FLOTANTE */
+      .whatsapp-float {
+        position: fixed;
+        bottom: 105px;
+        right: 20px;
+        background: #25d366;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        z-index: 3000;
+        box-shadow: 0 0 20px rgba(37, 211, 102, 0.6);
+        transition: 0.3s;
+      }
+
+      .whatsapp-float:hover {
+        transform: scale(1.1);
+      }
+
+      .whatsapp-float svg {
+        width: 38px;
+        height: 38px;
+        fill: white;
+      }
+
       /* MODAL */
       .modal {
         display: none;
@@ -870,6 +898,20 @@
 
     <!-- CARRITO -->
     <div class="carrito-float" onclick="abrirCarrito()">🛒</div>
+
+    <!-- WHATSAPP FLOTANTE -->
+    <a
+      class="whatsapp-float"
+      href="https://wa.me/51900235884?text=Hola%20MOVIL%20STORE%2C%20quiero%20informaci%C3%B3n%20sobre%20un%20celular"
+      target="_blank"
+      title="Escríbenos por WhatsApp"
+    >
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M16.004 3C8.832 3 3 8.83 3 16.002c0 2.29.6 4.53 1.74 6.5L3 29l6.66-1.72a13.03 13.03 0 0 0 6.34 1.64h.01C23.176 28.92 29 23.09 29 15.918 29 8.83 23.176 3 16.004 3zm0 23.73h-.01a10.8 10.8 0 0 1-5.5-1.5l-.39-.23-4.09 1.06 1.09-3.99-.25-.41a10.77 10.77 0 0 1-1.65-5.75c0-5.96 4.85-10.81 10.81-10.81 2.89 0 5.6 1.13 7.64 3.17a10.74 10.74 0 0 1 3.16 7.64c0 5.96-4.85 10.82-10.81 10.82zm5.93-8.1c-.32-.16-1.92-.95-2.22-1.06-.3-.11-.51-.16-.73.16-.22.33-.84 1.06-1.03 1.28-.19.22-.38.24-.7.08-.32-.16-1.37-.5-2.6-1.6-.96-.86-1.61-1.92-1.8-2.24-.19-.33-.02-.5.14-.66.15-.15.32-.38.49-.57.16-.19.21-.33.32-.54.11-.22.05-.41-.03-.57-.08-.16-.73-1.76-1-2.41-.26-.63-.53-.55-.73-.56h-.62c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.71s1.17 3.15 1.33 3.37c.16.22 2.3 3.5 5.57 4.91.78.34 1.39.54 1.86.69.78.25 1.49.21 2.05.13.63-.09 1.92-.78 2.19-1.54.27-.76.27-1.4.19-1.54-.08-.14-.3-.22-.62-.38z"
+        />
+      </svg>
+    </a>
 
     <!-- MODAL -->
     <div class="modal" id="carritoModal">

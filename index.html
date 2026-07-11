@@ -783,25 +783,7 @@ Enviar Opinión
 
 <tbody id="tbodyClientes">
 <tr>
-<td>1</td>
-<td>12345678</td>
-<td>Juan Pérez</td>
-<td>987 654 321</td>
-<td>HONOR X8C</td>
-</tr>
-<tr>
-<td>2</td>
-<td>87654321</td>
-<td>María López</td>
-<td>912 345 678</td>
-<td>SAMSUNG A56</td>
-</tr>
-<tr>
-<td>3</td>
-<td>45678912</td>
-<td>Carlos Quispe</td>
-<td>955 123 456</td>
-<td>IPHONE 16</td>
+<td colspan="5" style="text-align:center; color:#999; padding:20px;">Cargando clientes...</td>
 </tr>
 </tbody>
 
@@ -927,27 +909,37 @@ function escapar(texto) {
 }
 
 function cargarClientes() {
+    const tbody = document.getElementById('tbodyClientes');
+
     fetch("controllers/clientes.php?action=listar_clientes")
         .then(response => response.json())
         .then(data => {
-            if (data.success && data.data.length > 0) {
-                let html = '';
-                data.data.forEach((cliente, i) => {
-                    html += `
-                    <tr>
-                    <td>${i + 1}</td>
-                    <td>${escapar(cliente.dni)}</td>
-                    <td>${escapar(cliente.nombre)}</td>
-                    <td>${escapar(cliente.telefono)}</td>
-                    <td>${escapar(cliente.modelo)}</td>
-                    </tr>
-                    `;
-                });
-                document.getElementById('tbodyClientes').innerHTML = html;
+            if (!data.success) {
+                throw new Error(data.message || 'Error del servidor');
             }
+
+            if (data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">No hay clientes registrados aún</td></tr>';
+                return;
+            }
+
+            let html = '';
+            data.data.forEach((cliente, i) => {
+                html += `
+                <tr>
+                <td>${i + 1}</td>
+                <td>${escapar(cliente.dni)}</td>
+                <td>${escapar(cliente.nombre)}</td>
+                <td>${escapar(cliente.telefono)}</td>
+                <td>${escapar(cliente.modelo)}</td>
+                </tr>
+                `;
+            });
+            tbody.innerHTML = html;
         })
-        .catch(() => {
-            // Sin servidor: se mantienen los datos de ejemplo
+        .catch(err => {
+            console.error("Error cargando clientes:", err);
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">❌ Error al cargar clientes. Abre la página desde el servidor (ejecuta ./iniciar.sh y entra a http://localhost:8000)</td></tr>';
         });
 }
 

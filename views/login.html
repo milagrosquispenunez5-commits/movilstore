@@ -24,7 +24,7 @@
 
             background:
                 linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-                url("img/tienda2.jpeg");
+                url("../img/tienda2.jpeg");
 
             background-size: cover;
             background-position: center;
@@ -130,7 +130,7 @@
         <!-- LOGIN -->
         <div id="login">
 
-            <img src="img/logo.png" class="logo">
+            <img src="../img/logo.png" class="logo">
 
             <h2>Iniciar Sesión</h2>
 
@@ -138,21 +138,27 @@
                 Bienvenido a MOVIL STORE
             </p>
 
-            <input type="text" id="usuarioLogin" placeholder="Usuario">
+            <form method="POST" action="../controllers/auth.php">
 
-            <div class="password-box">
+                <input type="hidden" name="action" value="login">
 
-                <input type="password" id="passwordLogin" placeholder="Contraseña">
+                <input type="text" name="usuario" placeholder="Usuario" required>
 
-                <span onclick="mostrarPassword('passwordLogin')">
-                    👁️
-                </span>
+                <div class="password-box">
 
-            </div>
+                    <input type="password" name="password" id="passwordLogin" placeholder="Contraseña" required>
 
-            <button onclick="login()">
-                Ingresar
-            </button>
+                    <span onclick="mostrarPassword('passwordLogin')">
+                        👁️
+                    </span>
+
+                </div>
+
+                <button type="submit">
+                    Ingresar
+                </button>
+
+            </form>
 
             <div class="link">
 
@@ -169,7 +175,7 @@
         <!-- REGISTRO -->
         <div id="registro" class="oculto">
 
-            <img src="img/logo.png" class="logo">
+            <img src="../img/logo.png" class="logo">
 
             <h2>Crear Cuenta</h2>
 
@@ -177,21 +183,27 @@
                 Regístrate para ingresar
             </p>
 
-            <input type="text" id="nuevoUsuario" placeholder="Nuevo usuario">
+            <form method="POST" action="../controllers/auth.php">
 
-            <div class="password-box">
+                <input type="hidden" name="action" value="register">
 
-                <input type="password" id="nuevoPassword" placeholder="Nueva contraseña">
+                <input type="text" name="usuario" placeholder="Nuevo usuario" required>
 
-                <span onclick="mostrarPassword('nuevoPassword')">
-                    👁️
-                </span>
+                <div class="password-box">
 
-            </div>
+                    <input type="password" name="password" id="nuevoPassword" placeholder="Nueva contraseña" minlength="4" required>
 
-            <button onclick="registrar()">
-                Registrarse
-            </button>
+                    <span onclick="mostrarPassword('nuevoPassword')">
+                        👁️
+                    </span>
+
+                </div>
+
+                <button type="submit">
+                    Registrarse
+                </button>
+
+            </form>
 
             <div class="link">
 
@@ -210,77 +222,6 @@
     </div>
 
     <script>
-        function login() {
-            const usuario = document.getElementById("usuarioLogin").value.trim();
-            const password = document.getElementById("passwordLogin").value.trim();
-
-            if (!usuario || !password) {
-                document.getElementById("mensaje").innerHTML = "Completa todos los campos";
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append("action", "login");
-            formData.append("username", usuario);
-            formData.append("password", password);
-
-            fetch("api.php", {
-                method: "POST",
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Guardar sesión en localStorage
-                        localStorage.setItem('user_id', data.user_id);
-                        localStorage.setItem('username', usuario);
-                        window.location.href = "dashboard.html";
-                    } else {
-                        document.getElementById("mensaje").innerHTML = "❌ " + data.message;
-                    }
-                })
-                .catch(() => {
-                    document.getElementById("mensaje").innerHTML = "❌ Error al conectar con el servidor";
-                });
-        }
-
-        function registrar() {
-            const usuario = document.getElementById("nuevoUsuario").value.trim();
-            const password = document.getElementById("nuevoPassword").value.trim();
-
-            if (!usuario || !password) {
-                alert("Completa todos los campos");
-                return;
-            }
-
-            if (password.length < 4) {
-                alert("La contraseña debe tener mínimo 4 caracteres");
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append("action", "register");
-            formData.append("username", usuario);
-            formData.append("password", password);
-
-            fetch("api.php", {
-                method: "POST",
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert("✅ " + data.message);
-                        mostrarLogin();
-                    } else {
-                        alert("❌ " + data.message);
-                    }
-                })
-                .catch(() => {
-                    alert("❌ Error al conectar con el servidor");
-                });
-        }
-
         function mostrarRegistro() {
             document.getElementById("login").classList.add("oculto");
             document.getElementById("registro").classList.remove("oculto");
@@ -296,6 +237,23 @@
         function mostrarPassword(id) {
             let campo = document.getElementById(id);
             campo.type = campo.type === "password" ? "text" : "password";
+        }
+
+        // Mostrar mensajes que auth.php envía por la URL (?error=... / ?ok=... / ?vista=registro)
+        const params = new URLSearchParams(window.location.search);
+        const mensaje = document.getElementById("mensaje");
+
+        if (params.get("vista") === "registro") {
+            document.getElementById("login").classList.add("oculto");
+            document.getElementById("registro").classList.remove("oculto");
+        }
+
+        if (params.get("error")) {
+            mensaje.style.color = "red";
+            mensaje.textContent = "❌ " + params.get("error");
+        } else if (params.get("ok")) {
+            mensaje.style.color = "#00ff88";
+            mensaje.textContent = "✅ " + params.get("ok");
         }
     </script>
 

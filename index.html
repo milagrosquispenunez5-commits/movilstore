@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -335,6 +334,36 @@ nav a:hover{
     margin-top:50px;
 }
 
+/* CLIENTES */
+.tabla-clientes{
+    width:100%;
+    max-width:800px;
+    margin:auto;
+    border-collapse:collapse;
+    background:rgba(255,255,255,0.05);
+    border-radius:15px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.tabla-clientes th{
+    background:rgba(0,195,255,0.2);
+    color:#00c3ff;
+    padding:15px;
+    font-size:16px;
+    letter-spacing:1px;
+}
+
+.tabla-clientes td{
+    padding:14px;
+    border-top:1px solid rgba(255,255,255,0.08);
+    font-size:15px;
+}
+
+.tabla-clientes tr:hover td{
+    background:rgba(0,195,255,0.08);
+}
+
 .barras{
     display:flex;
     justify-content:center;
@@ -471,6 +500,7 @@ nav a{
 <a href="#" onclick="mostrar('contacto'); return false;">Contacto</a>
 <a href="#" onclick="mostrar('redes'); return false;">Redes Sociales</a>
 <a href="#" onclick="mostrar('opiniones'); return false;">Opinión Cliente</a>
+<a href="#" onclick="mostrar('clientes'); return false;">Lista de Clientes</a>
 </nav>
 
 </header>
@@ -734,6 +764,51 @@ Enviar Opinión
 
 </section>
 
+<!-- CLIENTES -->
+<section id="clientes" class="section hidden">
+
+<h2>Lista de Clientes</h2>
+
+<table class="tabla-clientes">
+
+<thead>
+<tr>
+<th>#</th>
+<th>DNI</th>
+<th>Nombre</th>
+<th>Teléfono</th>
+<th>Equipo Comprado</th>
+</tr>
+</thead>
+
+<tbody id="tbodyClientes">
+<tr>
+<td>1</td>
+<td>12345678</td>
+<td>Juan Pérez</td>
+<td>987 654 321</td>
+<td>HONOR X8C</td>
+</tr>
+<tr>
+<td>2</td>
+<td>87654321</td>
+<td>María López</td>
+<td>912 345 678</td>
+<td>SAMSUNG A56</td>
+</tr>
+<tr>
+<td>3</td>
+<td>45678912</td>
+<td>Carlos Quispe</td>
+<td>955 123 456</td>
+<td>IPHONE 16</td>
+</tr>
+</tbody>
+
+</table>
+
+</section>
+
 <!-- CARRITO -->
 <div class="carrito-float" onclick="abrirCarrito()">
 🛒
@@ -845,12 +920,41 @@ document.getElementById("carritoModal")
 
 }
 
-<script>
+function escapar(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto;
+    return div.innerHTML;
+}
+
+function cargarClientes() {
+    fetch("controllers/clientes.php?action=listar_clientes")
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.length > 0) {
+                let html = '';
+                data.data.forEach((cliente, i) => {
+                    html += `
+                    <tr>
+                    <td>${i + 1}</td>
+                    <td>${escapar(cliente.dni)}</td>
+                    <td>${escapar(cliente.nombre)}</td>
+                    <td>${escapar(cliente.telefono)}</td>
+                    <td>${escapar(cliente.modelo)}</td>
+                    </tr>
+                    `;
+                });
+                document.getElementById('tbodyClientes').innerHTML = html;
+            }
+        })
+        .catch(() => {
+            // Sin servidor: se mantienen los datos de ejemplo
+        });
+}
 
 let clientRating = 5;
 
 function cargarOpinionesClientes() {
-    fetch("api.php?action=get_opinions")
+    fetch("controllers/opiniones.php?action=get_opinions")
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -894,6 +998,7 @@ function setClientRating(rating) {
 
 document.addEventListener('DOMContentLoaded', function() {
     cargarOpinionesClientes();
+    cargarClientes();
     
     const opinionForm = document.getElementById('opinionForm');
     if (opinionForm) {
@@ -920,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append("opinion", comentario);
             formData.append("rating", clientRating);
 
-            fetch("api.php", {
+            fetch("controllers/opiniones.php", {
                 method: "POST",
                 body: formData
             })
@@ -946,8 +1051,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </script>
 
-</script>
-
 </body>
 </html>
-```

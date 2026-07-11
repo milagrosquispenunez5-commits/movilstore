@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Registro de Clientes - MOVIL STORE</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            background:
+                linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url("../img/tienda2.jpeg");
+
+            background-size: cover;
+            background-position: center;
+        }
+
+        .container {
+            width: 380px;
+            background: rgba(17, 24, 39, 0.95);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(0, 195, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            width: 120px;
+            display: block;
+            margin: auto;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #00c3ff;
+            margin-bottom: 10px;
+        }
+
+        .texto {
+            text-align: center;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        label {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px 0;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #00c3ff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #009ed1;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 18px;
+            color: #ccc;
+        }
+
+        .link a {
+            color: #00c3ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        #mensaje {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <img src="../img/logo.png" class="logo">
+
+        <h2>Registro de Clientes</h2>
+
+        <p class="texto">
+            Agrega un nuevo cliente de MOVIL STORE
+        </p>
+
+        <label for="dniCliente">DNI</label>
+        <input type="text" id="dniCliente" placeholder="DNI (8 dígitos)" maxlength="8">
+
+        <label for="nombreCliente">Nombre</label>
+        <input type="text" id="nombreCliente" placeholder="Nombre completo">
+
+        <label for="telefonoCliente">Número de teléfono</label>
+        <input type="text" id="telefonoCliente" placeholder="Teléfono (9 dígitos)" maxlength="9">
+
+        <label for="modeloCliente">Modelo de equipo comprado</label>
+        <input type="text" id="modeloCliente" placeholder="Ej: HONOR X8C">
+
+        <button onclick="registrarCliente()">
+            Registrar Cliente
+        </button>
+
+        <div class="link">
+            <a href="../index.html">← Volver a la tienda</a>
+        </div>
+
+        <p id="mensaje"></p>
+
+    </div>
+
+    <script>
+        function registrarCliente() {
+            const dni = document.getElementById("dniCliente").value.trim();
+            const nombre = document.getElementById("nombreCliente").value.trim();
+            const telefono = document.getElementById("telefonoCliente").value.trim();
+            const modelo = document.getElementById("modeloCliente").value.trim();
+            const mensaje = document.getElementById("mensaje");
+
+            if (!dni || !nombre || !telefono || !modelo) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "Completa todos los campos";
+                return;
+            }
+
+            if (!/^\d{8}$/.test(dni)) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "El DNI debe tener 8 dígitos";
+                return;
+            }
+
+            if (!/^\d{9}$/.test(telefono)) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "El teléfono debe tener 9 dígitos";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("action", "agregar_cliente");
+            formData.append("dni", dni);
+            formData.append("nombre", nombre);
+            formData.append("telefono", telefono);
+            formData.append("modelo", modelo);
+
+            fetch("../controllers/clientes.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mensaje.style.color = "#00ff88";
+                        mensaje.innerHTML = "✅ " + data.message;
+                        document.getElementById("dniCliente").value = "";
+                        document.getElementById("nombreCliente").value = "";
+                        document.getElementById("telefonoCliente").value = "";
+                        document.getElementById("modeloCliente").value = "";
+                    } else {
+                        mensaje.style.color = "red";
+                        mensaje.innerHTML = "❌ " + data.message;
+                    }
+                })
+                .catch(() => {
+                    mensaje.style.color = "red";
+                    mensaje.innerHTML = "❌ Error al conectar con el servidor";
+                });
+        }
+    </script>
+
+</body>
+
+</html>

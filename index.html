@@ -501,6 +501,7 @@ nav a{
 <a href="#" onclick="mostrar('redes'); return false;">Redes Sociales</a>
 <a href="#" onclick="mostrar('opiniones'); return false;">Opinión Cliente</a>
 <a href="#" onclick="mostrar('clientes'); return false;">Lista de Clientes</a>
+<a href="views/login.html">Iniciar Sesión</a>
 </nav>
 
 </header>
@@ -667,7 +668,7 @@ Pichanaki - Junín - Perú
 <h3>📞 WhatsApp</h3>
 
 <p>
-+51 900 235 884
+<a href="https://wa.me/51900235884" target="_blank" style="color:#00c3ff; text-decoration:none;">+51 900 235 884</a>
 </p>
 
 </div>
@@ -677,7 +678,7 @@ Pichanaki - Junín - Perú
 <h3>📧 Correo</h3>
 
 <p>
-movilstore@gmail.com
+<a href="mailto:movilstore@gmail.com" style="color:#00c3ff; text-decoration:none;">movilstore@gmail.com</a>
 </p>
 
 </div>
@@ -735,7 +736,7 @@ Videos y novedades de celulares.
 <div class="opinion-box" style="max-width:600px; margin:0 auto; background:rgba(0,195,255,0.1); padding:30px; border-radius:15px; border:2px solid #00c3ff;">
 
 <form id="opinionForm" style="text-align:left;">
-<p style="margin-bottom:15px; font-size:16px;">Tu Nombre/Email:</p>
+<p style="margin-bottom:15px; font-size:16px;">Tu Nombre:</p>
 <input type="text" id="nombreCliente" placeholder="Tu nombre" style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #00c3ff; border-radius:8px; background:rgba(11,18,32,0.8); color:white;">
 
 <p style="margin-bottom:15px; font-size:16px;">Tu Opinión:</p>
@@ -861,9 +862,15 @@ behavior:'smooth'
 
 function agregar(nombre,precio){
 
-carrito.push(nombre);
+carrito.push({nombre, precio});
 
-total += precio;
+actualizarCarrito();
+
+}
+
+function quitar(indice){
+
+carrito.splice(indice, 1);
 
 actualizarCarrito();
 
@@ -872,16 +879,22 @@ actualizarCarrito();
 function actualizarCarrito(){
 
 let lista = document.getElementById("listaCarrito");
+let html = "";
 
-lista.innerHTML = "";
+total = 0;
 
-carrito.forEach(producto => {
+carrito.forEach((producto, i) => {
 
-lista.innerHTML += `
-<p>✔ ${producto}</p>
+total += producto.precio;
+
+html += `
+<p>✔ ${producto.nombre} — S/ ${producto.precio}
+<span onclick="quitar(${i})" style="cursor:pointer; color:#ff5555; margin-left:10px;" title="Quitar del carrito">✖</span></p>
 `;
 
 });
+
+lista.innerHTML = html || "<p style='color:#999;'>El carrito está vacío</p>";
 
 document.getElementById("total")
 .innerHTML = "Total: S/ " + total;
@@ -958,11 +971,11 @@ function cargarOpinionesClientes() {
                         html += `
                             <div style="background:rgba(255,255,255,0.05); border-left:4px solid #00c3ff; border-radius:8px; padding:20px; margin-bottom:15px;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                    <strong style="color:#00c3ff;">${op.nombre}</strong>
+                                    <strong style="color:#00c3ff;">${escapar(op.nombre)}</strong>
                                     <span style="color:#ffd700;">${'★'.repeat(op.rating)}</span>
                                 </div>
-                                <p style="color:#ddd; line-height:1.6;">${op.opinion}</p>
-                                <small style="color:#999;">${op.fecha}</small>
+                                <p style="color:#ddd; line-height:1.6;">${escapar(op.opinion)}</p>
+                                <small style="color:#999;">${escapar(op.fecha)}</small>
                             </div>
                         `;
                     });
@@ -1013,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append("action", "add_opinion_client");
             formData.append("nombre", nombre);
-            formData.append("email", nombre);
+            formData.append("email", "");
             formData.append("opinion", comentario);
             formData.append("rating", clientRating);
 

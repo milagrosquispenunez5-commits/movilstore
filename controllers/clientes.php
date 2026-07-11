@@ -1,4 +1,5 @@
 <?php
+session_start();
 require __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
@@ -24,6 +25,12 @@ $conn->query("CREATE TABLE IF NOT EXISTS clientes (
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 if ($action === 'agregar_cliente') {
+    if (!isset($_SESSION['user_id'])) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Debes iniciar sesión para registrar clientes']);
+        exit;
+    }
+
     $dni = trim($_POST['dni'] ?? '');
     $nombre = trim($_POST['nombre'] ?? '');
     $telefono = trim($_POST['telefono'] ?? '');

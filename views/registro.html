@@ -141,6 +141,8 @@
 
         <div class="link">
             <a href="../index.html">← Volver a la tienda</a>
+            &nbsp;|&nbsp;
+            <a href="../controllers/auth.php?action=logout">Cerrar sesión</a>
         </div>
 
         <p id="mensaje"></p>
@@ -148,6 +150,18 @@
     </div>
 
     <script>
+        // Guard de sesión: si no hay sesión iniciada, redirige al login
+        fetch("../controllers/auth.php?action=check")
+            .then(response => response.json())
+            .then(data => {
+                if (!data.logged) {
+                    window.location.href = "login.html?error=" + encodeURIComponent("Inicia sesión primero");
+                }
+            })
+            .catch(() => {
+                window.location.href = "login.html?error=" + encodeURIComponent("Inicia sesión primero");
+            });
+
         function registrarCliente() {
             const dni = document.getElementById("dniCliente").value.trim();
             const nombre = document.getElementById("nombreCliente").value.trim();

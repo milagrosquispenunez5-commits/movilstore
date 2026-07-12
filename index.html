@@ -873,12 +873,47 @@
         </form>
       </div>
 
-      <div id="opinionesList" style="margin-top: 50px">
-        <h2>Opiniones de Clientes</h2>
-        <div
-          id="opinionsContainer"
-          style="max-width: 600px; margin: 0 auto"
-        ></div>
+      <div class="grafico">
+        <h2>Resumen de Opiniones</h2>
+        <p id="totalOpiniones" style="color: #ccc"></p>
+
+        <div class="barras">
+          <div class="barra-item">
+            <div
+              class="barra"
+              id="barraBuenas"
+              style="background: #00ff88; height: 4px"
+            ></div>
+            <div class="barra-text">
+              😀 Buenas<br />
+              <strong id="cantBuenas" style="color: #00ff88">0</strong>
+            </div>
+          </div>
+
+          <div class="barra-item">
+            <div
+              class="barra"
+              id="barraRegulares"
+              style="background: #ffd700; height: 4px"
+            ></div>
+            <div class="barra-text">
+              😐 Regulares<br />
+              <strong id="cantRegulares" style="color: #ffd700">0</strong>
+            </div>
+          </div>
+
+          <div class="barra-item">
+            <div
+              class="barra"
+              id="barraMalas"
+              style="background: #ff5555; height: 4px"
+            ></div>
+            <div class="barra-text">
+              😠 Malas<br />
+              <strong id="cantMalas" style="color: #ff5555">0</strong>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1062,32 +1097,42 @@
         fetch("controllers/opiniones.php?action=get_opinions")
           .then((response) => response.json())
           .then((data) => {
-            if (data.success) {
-              let html = "";
-              if (data.data.length === 0) {
-                html =
-                  '<p style="text-align:center; color:#999; padding:20px;">No hay opiniones aún. ¡Sé el primero!</p>';
-              } else {
-                data.data.forEach((op) => {
-                  html += `
-                            <div style="background:rgba(255,255,255,0.05); border-left:4px solid #00c3ff; border-radius:8px; padding:20px; margin-bottom:15px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                    <strong style="color:#00c3ff;">${escapar(op.nombre)}</strong>
-                                    <span style="color:#ffd700;">${"★".repeat(op.rating)}</span>
-                                </div>
-                                <p style="color:#ddd; line-height:1.6;">${escapar(op.opinion)}</p>
-                                <small style="color:#999;">${escapar(op.fecha)}</small>
-                            </div>
-                        `;
-                });
-              }
-              document.getElementById("opinionsContainer").innerHTML = html;
-            }
+            if (!data.success) return;
+
+            // Buenas: 4-5 estrellas | Regulares: 3 | Malas: 1-2
+            let buenas = 0,
+              regulares = 0,
+              malas = 0;
+
+            data.data.forEach((op) => {
+              if (op.rating >= 4) buenas++;
+              else if (op.rating === 3) regulares++;
+              else malas++;
+            });
+
+            const total = data.data.length;
+            document.getElementById("totalOpiniones").textContent =
+              total === 0
+                ? "No hay opiniones aún. ¡Sé el primero!"
+                : "Total de opiniones: " + total;
+
+            const max = Math.max(buenas, regulares, malas, 1);
+
+            // Altura proporcional (máx 220px dentro del área de 250px)
+            const altura = (n) => (n === 0 ? 4 : Math.round((n / max) * 220));
+
+            document.getElementById("barraBuenas").style.height = altura(buenas) + "px";
+            document.getElementById("barraRegulares").style.height = altura(regulares) + "px";
+            document.getElementById("barraMalas").style.height = altura(malas) + "px";
+
+            document.getElementById("cantBuenas").textContent = buenas;
+            document.getElementById("cantRegulares").textContent = regulares;
+            document.getElementById("cantMalas").textContent = malas;
           })
           .catch((err) => {
             console.error("Error cargando opiniones:", err);
-            document.getElementById("opinionsContainer").innerHTML =
-              '<p style="color:red;">Error al cargar opiniones</p>';
+            document.getElementById("totalOpiniones").textContent =
+              "Error al cargar el resumen de opiniones";
           });
       }
 

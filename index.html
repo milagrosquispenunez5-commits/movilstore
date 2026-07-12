@@ -470,13 +470,28 @@
       }
 
       #opiniones .barras {
-        height: 150px;
+        height: auto;
         margin-top: 15px;
         gap: 30px;
       }
 
-      #opiniones .barra {
+      /* Riel fijo: marca hasta dónde puede llegar la barra */
+      .barra-track {
         width: 60px;
+        height: 150px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 10px;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+      }
+
+      .barra-track .barra {
+        width: 100%;
+        height: 0;
+        border-radius: 0;
       }
 
       .lista-opiniones {
@@ -484,6 +499,10 @@
         overflow-y: auto;
         padding-right: 8px;
         margin-top: 20px;
+      }
+
+      .lista-opiniones::-webkit-scrollbar {
+        width: 5px;
       }
 
       @media (max-width: 900px) {
@@ -920,11 +939,13 @@
 
           <div class="barras">
             <div class="barra-item">
-              <div
-                class="barra"
-                id="barraBuenas"
-                style="background: #00ff88; height: 4px"
-              ></div>
+              <div class="barra-track">
+                <div
+                  class="barra"
+                  id="barraBuenas"
+                  style="background: #00ff88"
+                ></div>
+              </div>
               <div class="barra-text">
                 😀 Buenas<br />
                 <strong id="cantBuenas" style="color: #00ff88">0</strong>
@@ -932,11 +953,13 @@
             </div>
 
             <div class="barra-item">
-              <div
-                class="barra"
-                id="barraRegulares"
-                style="background: #ffd700; height: 4px"
-              ></div>
+              <div class="barra-track">
+                <div
+                  class="barra"
+                  id="barraRegulares"
+                  style="background: #ffd700"
+                ></div>
+              </div>
               <div class="barra-text">
                 😐 Regulares<br />
                 <strong id="cantRegulares" style="color: #ffd700">0</strong>
@@ -944,11 +967,13 @@
             </div>
 
             <div class="barra-item">
-              <div
-                class="barra"
-                id="barraMalas"
-                style="background: #ff5555; height: 4px"
-              ></div>
+              <div class="barra-track">
+                <div
+                  class="barra"
+                  id="barraMalas"
+                  style="background: #ff5555"
+                ></div>
+              </div>
               <div class="barra-text">
                 😠 Malas<br />
                 <strong id="cantMalas" style="color: #ff5555">0</strong>
@@ -1162,12 +1187,12 @@
 
             const max = Math.max(buenas, regulares, malas, 1);
 
-            // Altura proporcional (máx 120px dentro del área de 150px)
-            const altura = (n) => (n === 0 ? 4 : Math.round((n / max) * 120));
+            // Altura en porcentaje del riel (la mayor cantidad llena el riel)
+            const altura = (n) => (n === 0 ? "0%" : Math.round((n / max) * 100) + "%");
 
-            document.getElementById("barraBuenas").style.height = altura(buenas) + "px";
-            document.getElementById("barraRegulares").style.height = altura(regulares) + "px";
-            document.getElementById("barraMalas").style.height = altura(malas) + "px";
+            document.getElementById("barraBuenas").style.height = altura(buenas);
+            document.getElementById("barraRegulares").style.height = altura(regulares);
+            document.getElementById("barraMalas").style.height = altura(malas);
 
             document.getElementById("cantBuenas").textContent = buenas;
             document.getElementById("cantRegulares").textContent = regulares;
@@ -1217,6 +1242,15 @@
         cargarOpinionesClientes();
         cargarClientes();
         setClientRating(5);
+
+        // Abrir una sección directa desde la URL (ej: index.html#opiniones)
+        if (location.hash) {
+          const id = location.hash.substring(1);
+          const sec = document.getElementById(id);
+          if (sec && sec.classList.contains("section")) {
+            mostrar(id);
+          }
+        }
 
         const opinionForm = document.getElementById("opinionForm");
         if (opinionForm) {

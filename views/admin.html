@@ -115,6 +115,7 @@
             <button class="tab-btn" onclick="verTab('clientes', this)">📋 Lista de Clientes</button>
             <button class="tab-btn" onclick="verTab('opiniones', this)">⭐ Opiniones</button>
             <button class="tab-btn" onclick="verTab('pedidos', this)">🛒 Pedidos</button>
+            <button class="tab-btn" onclick="verTab('productos', this)">📦 Productos</button>
         </div>
 
         <!-- REGISTRAR CLIENTE -->
@@ -224,6 +225,48 @@
             </table>
         </div>
 
+        <!-- PRODUCTOS -->
+        <div id="tab-productos" class="tab hidden">
+            <div class="opinion-panel form-admin">
+                <h3 id="tituloProducto">Agregar producto</h3>
+
+                <label class="opinion-label" for="prodNombre">Nombre</label>
+                <input type="text" id="prodNombre" class="opinion-input" placeholder="Ej: HONOR X8C">
+
+                <label class="opinion-label" for="prodPrecio">Precio (S/)</label>
+                <input type="number" id="prodPrecio" class="opinion-input" placeholder="Ej: 900" min="0" step="0.01">
+
+                <label class="opinion-label" for="prodImagen">Imagen (JPG, PNG o WEBP)</label>
+                <input type="file" id="prodImagen" class="opinion-input" accept="image/jpeg,image/png,image/webp">
+
+                <button class="btn" style="width:100%" onclick="guardarProducto()">
+                    Guardar Producto
+                </button>
+                <button class="btn hidden" id="btnCancelarEdicion" style="width:100%; background:#666; margin-top:10px;" onclick="cancelarEdicion()">
+                    Cancelar edición
+                </button>
+
+                <p id="mensajeProducto" style="text-align:center; margin-top:15px; font-weight:bold;"></p>
+            </div>
+
+            <table class="tabla-clientes" style="margin-top:35px;">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyProductos">
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:#999; padding:20px;">Cargando productos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
     </main>
 
     <script>
@@ -246,6 +289,7 @@
                 cargarClientes();
                 cargarOpiniones();
                 cargarPedidos();
+                cargarProductos();
             })
             .catch(() => {
                 window.location.href = "login.html?error=" + encodeURIComponent("Inicia sesión primero");
@@ -413,6 +457,147 @@
                     document.getElementById("totalOpiniones").textContent =
                         "Error al cargar las opiniones";
                 });
+        }
+
+        // ===== PRODUCTOS =====
+        let productosAdmin = [];
+        let productoEditandoId = null;
+
+        function cargarProductos() {
+            const tbody = document.getElementById("tbodyProductos");
+
+            fetch("../controllers/productos.php?action=listar_productos")
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.message || "Error del servidor");
+                    }
+
+                    productosAdmin = data.data;
+
+                    if (productosAdmin.length === 0) {
+                        tbody.innerHTML =
+                            '<tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">No hay productos registrados</td></tr>';
+                        return;
+                    }
+
+                    let html = "";
+                    productosAdmin.forEach((producto, i) => {
+                        const imagen = producto.imagen
+                            ? `<img src="../${escapar(producto.imagen)}" style="width:60px; height:45px; object-fit:cover; border-radius:6px;">`
+                            : "📱";
+
+                        html += `
+                            <tr>
+                            <td>${i + 1}</td>
+                            <td>${imagen}</td>
+                            <td>${escapar(producto.nombre)}</td>
+                            <td>S/ ${Number(producto.precio)}</td>
+                            <td>
+                                <button class="tab-btn" style="padding:6px 12px;" onclick="editarProducto(${i})">✏️ Editar</button>
+                                <button class="tab-btn" style="padding:6px 12px; border-color:rgba(255,85,85,0.5);" onclick="eliminarProducto(${i})">🗑️ Eliminar</button>
+                            </td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Error cargando productos:", err);
+                    tbody.innerHTML =
+                        '<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">❌ Error al cargar productos</td></tr>';
+                });
+        }
+
+        function guardarProducto() {
+            const nombre = document.getElementById("prodNombre").value.trim();
+            const precio = document.getElementById("prodPrecio").value.trim();
+            const imagen = document.getElementById("prodImagen").files[0];
+            const mensaje = document.getElementById("mensajeProducto");
+
+            if (!nombre || !precio || parseFloat(precio) <= 0) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "Ingresa un nombre y un precio válido";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("action", productoEditandoId ? "editar_producto" : "agregar_producto");
+            formData.append("nombre", nombre);
+            formData.append("precio", precio);
+            if (productoEditandoId) formData.append("id", productoEditandoId);
+            if (imagen) formData.append("imagen", imagen);
+
+            fetch("../controllers/productos.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    mensaje.style.color = data.success ? "#00ff88" : "red";
+                    mensaje.innerHTML = (data.success ? "✅ " : "❌ ") + data.message;
+
+                    if (data.success) {
+                        cancelarEdicion();
+                        cargarProductos();
+                    }
+                })
+                .catch(() => {
+                    mensaje.style.color = "red";
+                    mensaje.innerHTML = "❌ Error al conectar con el servidor";
+                });
+        }
+
+        function editarProducto(indice) {
+            const producto = productosAdmin[indice];
+
+            productoEditandoId = producto.id;
+            document.getElementById("tituloProducto").textContent = "Editar: " + producto.nombre;
+            document.getElementById("prodNombre").value = producto.nombre;
+            document.getElementById("prodPrecio").value = producto.precio;
+            document.getElementById("prodImagen").value = "";
+            document.getElementById("btnCancelarEdicion").classList.remove("hidden");
+            document.getElementById("mensajeProducto").innerHTML =
+                "Si no eliges una imagen nueva, se mantiene la actual";
+            document.getElementById("mensajeProducto").style.color = "#ccc";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function cancelarEdicion() {
+            productoEditandoId = null;
+            document.getElementById("tituloProducto").textContent = "Agregar producto";
+            document.getElementById("prodNombre").value = "";
+            document.getElementById("prodPrecio").value = "";
+            document.getElementById("prodImagen").value = "";
+            document.getElementById("btnCancelarEdicion").classList.add("hidden");
+        }
+
+        function eliminarProducto(indice) {
+            const producto = productosAdmin[indice];
+
+            if (!confirm(`¿Eliminar "${producto.nombre}" de la tienda?`)) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("action", "eliminar_producto");
+            formData.append("id", producto.id);
+
+            fetch("../controllers/productos.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const mensaje = document.getElementById("mensajeProducto");
+                    mensaje.style.color = data.success ? "#00ff88" : "red";
+                    mensaje.innerHTML = (data.success ? "✅ " : "❌ ") + data.message;
+
+                    if (data.success) {
+                        cargarProductos();
+                    }
+                })
+                .catch(err => console.error("Error eliminando producto:", err));
         }
 
         function cargarPedidos() {

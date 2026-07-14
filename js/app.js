@@ -70,6 +70,55 @@ function escapar(texto) {
   return div.innerHTML;
 }
 
+// Carga los productos desde la BD y arma las cards de la tienda
+function cargarProductos() {
+  const contenedor = document.getElementById("listaProductos");
+
+  fetch("controllers/productos.php?action=listar_productos")
+    .then((response) => response.json())
+    .then((data) => {
+      if (!data.success) {
+        throw new Error(data.message || "Error del servidor");
+      }
+
+      if (data.data.length === 0) {
+        contenedor.innerHTML =
+          "<p style='color:#999;'>No hay productos disponibles por ahora</p>";
+        return;
+      }
+
+      contenedor.innerHTML = "";
+
+      data.data.forEach((producto) => {
+        const precio = Number(producto.precio);
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+          ${
+            producto.imagen
+              ? `<img src="${escapar(producto.imagen)}">`
+              : `<div style="height:230px; display:flex; align-items:center; justify-content:center; font-size:70px; background:black; border-radius:15px;">📱</div>`
+          }
+          <h3>${escapar(producto.nombre)}</h3>
+          <p>S/ ${precio}</p>
+          <button class="btn">Agregar al carrito</button>
+        `;
+
+        card
+          .querySelector("button")
+          .addEventListener("click", () => agregar(producto.nombre, precio));
+
+        contenedor.appendChild(card);
+      });
+    })
+    .catch((err) => {
+      console.error("Error cargando productos:", err);
+      contenedor.innerHTML =
+        "<p style='color:red;'>❌ Error al cargar los productos. Abre la página desde el servidor (http://localhost:8000)</p>";
+    });
+}
+
 // Consulta la sesión y adapta el header y la sección de opiniones
 function cargarSesion() {
   return fetch("controllers/auth.php?action=check")
@@ -202,6 +251,7 @@ function setClientRating(rating) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+  cargarProductos();
   cargarSesion();
   setClientRating(5);
 

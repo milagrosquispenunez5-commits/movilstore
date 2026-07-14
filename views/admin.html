@@ -111,16 +111,16 @@
         <h2>Panel de Administración</h2>
 
         <div class="tabs">
-            <button class="tab-btn activa" onclick="verTab('registrar', this)">➕ Registrar Cliente</button>
-            <button class="tab-btn" onclick="verTab('clientes', this)">📋 Lista de Clientes</button>
-            <button class="tab-btn" onclick="verTab('opiniones', this)">⭐ Opiniones</button>
-            <button class="tab-btn" onclick="verTab('pedidos', this)">🛒 Pedidos</button>
-            <button class="tab-btn" onclick="verTab('productos', this)">📦 Productos</button>
+            <button class="tab-btn activa" data-tab="registrar" onclick="verTab('registrar', this)">➕ Registrar Cliente</button>
+            <button class="tab-btn" data-tab="clientes" onclick="verTab('clientes', this)">📋 Lista de Clientes</button>
+            <button class="tab-btn" data-tab="opiniones" onclick="verTab('opiniones', this)">⭐ Opiniones</button>
+            <button class="tab-btn" data-tab="pedidos" onclick="verTab('pedidos', this)">🛒 Pedidos</button>
+            <button class="tab-btn" data-tab="productos" onclick="verTab('productos', this)">📦 Productos</button>
         </div>
 
         <div id="tab-registrar" class="tab">
             <div class="opinion-panel form-admin">
-                <h3>Agregar un nuevo cliente</h3>
+                <h3 id="tituloCliente">Agregar un nuevo cliente</h3>
 
                 <label class="opinion-label" for="dniCliente">DNI</label>
                 <input type="text" id="dniCliente" class="opinion-input" placeholder="DNI (8 dígitos)" maxlength="8">
@@ -134,8 +134,11 @@
                 <label class="opinion-label" for="modeloCliente">Modelo de equipo comprado</label>
                 <input type="text" id="modeloCliente" class="opinion-input" placeholder="Ej: HONOR X8C">
 
-                <button class="btn" style="width:100%" onclick="registrarCliente()">
+                <button class="btn" style="width:100%" id="btnGuardarCliente" onclick="registrarCliente()">
                     Registrar Cliente
+                </button>
+                <button class="btn hidden" id="btnCancelarCliente" style="width:100%; background:#666; margin-top:10px;" onclick="cancelarEdicionCliente()">
+                    Cancelar edición
                 </button>
 
                 <p id="mensaje"></p>
@@ -151,14 +154,16 @@
                         <th>Nombre</th>
                         <th>Teléfono</th>
                         <th>Equipo Comprado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyClientes">
                     <tr>
-                        <td colspan="5" style="text-align:center; color:#999; padding:20px;">Cargando clientes...</td>
+                        <td colspan="6" style="text-align:center; color:#999; padding:20px;">Cargando clientes...</td>
                     </tr>
                 </tbody>
             </table>
+            <p id="mensajeLista" style="text-align:center; margin-top:15px; font-weight:bold;"></p>
         </div>
 
         <div id="tab-opiniones" class="tab hidden">
@@ -203,7 +208,34 @@
         </div>
 
         <div id="tab-pedidos" class="tab hidden">
-            <table class="tabla-clientes">
+            <div class="opinion-panel form-admin">
+                <h3 id="tituloPedido">Registrar pedido</h3>
+
+                <label class="opinion-label" for="pedidoCliente">Cliente</label>
+                <input type="text" id="pedidoCliente" class="opinion-input" placeholder="Nombre del cliente">
+
+                <label class="opinion-label">Productos</label>
+                <div id="itemsPedido"></div>
+
+                <button class="tab-btn" style="width:100%; margin-bottom:15px;" onclick="agregarFilaPedido()">
+                    ➕ Añadir producto
+                </button>
+
+                <p style="color:#ccc; font-size:14px; margin-bottom:12px;">
+                    Total: <strong id="totalPedidoForm" style="color:#00c3ff;">S/ 0</strong>
+                </p>
+
+                <button class="btn" style="width:100%" id="btnGuardarPedido" onclick="guardarPedido()">
+                    Guardar Pedido
+                </button>
+                <button class="btn hidden" id="btnCancelarPedido" style="width:100%; background:#666; margin-top:10px;" onclick="cancelarEdicionPedido()">
+                    Cancelar edición
+                </button>
+
+                <p id="mensajePedido" style="text-align:center; margin-top:15px; font-weight:bold;"></p>
+            </div>
+
+            <table class="tabla-clientes" style="margin-top:35px;">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -211,11 +243,12 @@
                         <th>Productos</th>
                         <th>Total</th>
                         <th>Fecha</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyPedidos">
                     <tr>
-                        <td colspan="5" style="text-align:center; color:#999; padding:20px;">Cargando pedidos...</td>
+                        <td colspan="6" style="text-align:center; color:#999; padding:20px;">Cargando pedidos...</td>
                     </tr>
                 </tbody>
             </table>
@@ -297,11 +330,19 @@
             boton.classList.add("activa");
         }
 
+        function irATab(id) {
+            verTab(id, document.querySelector(`.tabs .tab-btn[data-tab="${id}"]`));
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
         function escapar(texto) {
             const div = document.createElement("div");
             div.textContent = texto;
             return div.innerHTML;
         }
+
+        let clientesAdmin = [];
+        let clienteEditandoId = null;
 
         function registrarCliente() {
             const dni = document.getElementById("dniCliente").value.trim();
@@ -329,7 +370,8 @@
             }
 
             const formData = new FormData();
-            formData.append("action", "agregar_cliente");
+            formData.append("action", clienteEditandoId ? "editar_cliente" : "agregar_cliente");
+            if (clienteEditandoId) formData.append("id", clienteEditandoId);
             formData.append("dni", dni);
             formData.append("nombre", nombre);
             formData.append("telefono", telefono);
@@ -344,10 +386,7 @@
                     if (data.success) {
                         mensaje.style.color = "#00ff88";
                         mensaje.innerHTML = "✅ " + data.message;
-                        document.getElementById("dniCliente").value = "";
-                        document.getElementById("nombreCliente").value = "";
-                        document.getElementById("telefonoCliente").value = "";
-                        document.getElementById("modeloCliente").value = "";
+                        cancelarEdicionCliente(true);
                         cargarClientes();
                     } else {
                         mensaje.style.color = "red";
@@ -360,6 +399,62 @@
                 });
         }
 
+        function editarCliente(indice) {
+            const cliente = clientesAdmin[indice];
+
+            clienteEditandoId = cliente.id;
+            document.getElementById("tituloCliente").textContent = "Editar cliente: " + cliente.nombre;
+            document.getElementById("dniCliente").value = cliente.dni;
+            document.getElementById("nombreCliente").value = cliente.nombre;
+            document.getElementById("telefonoCliente").value = cliente.telefono;
+            document.getElementById("modeloCliente").value = cliente.modelo;
+            document.getElementById("btnGuardarCliente").textContent = "Guardar Cambios";
+            document.getElementById("btnCancelarCliente").classList.remove("hidden");
+            document.getElementById("mensaje").innerHTML = "";
+            irATab("registrar");
+        }
+
+        function cancelarEdicionCliente(mantenerMensaje) {
+            clienteEditandoId = null;
+            document.getElementById("tituloCliente").textContent = "Agregar un nuevo cliente";
+            document.getElementById("dniCliente").value = "";
+            document.getElementById("nombreCliente").value = "";
+            document.getElementById("telefonoCliente").value = "";
+            document.getElementById("modeloCliente").value = "";
+            document.getElementById("btnGuardarCliente").textContent = "Registrar Cliente";
+            document.getElementById("btnCancelarCliente").classList.add("hidden");
+            if (!mantenerMensaje) document.getElementById("mensaje").innerHTML = "";
+        }
+
+        function eliminarCliente(indice) {
+            const cliente = clientesAdmin[indice];
+
+            if (!confirm(`¿Eliminar al cliente "${cliente.nombre}" (DNI ${cliente.dni})?`)) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("action", "eliminar_cliente");
+            formData.append("id", cliente.id);
+
+            fetch("../controllers/clientes.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const mensaje = document.getElementById("mensajeLista");
+                    mensaje.style.color = data.success ? "#00ff88" : "red";
+                    mensaje.innerHTML = (data.success ? "✅ " : "❌ ") + data.message;
+
+                    if (data.success) {
+                        if (clienteEditandoId === cliente.id) cancelarEdicionCliente();
+                        cargarClientes();
+                    }
+                })
+                .catch(err => console.error("Error eliminando cliente:", err));
+        }
+
         function cargarClientes() {
             const tbody = document.getElementById("tbodyClientes");
 
@@ -370,14 +465,16 @@
                         throw new Error(data.message || "Error del servidor");
                     }
 
-                    if (data.data.length === 0) {
+                    clientesAdmin = data.data;
+
+                    if (clientesAdmin.length === 0) {
                         tbody.innerHTML =
-                            '<tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">No hay clientes registrados aún</td></tr>';
+                            '<tr><td colspan="6" style="text-align:center; color:#999; padding:20px;">No hay clientes registrados aún</td></tr>';
                         return;
                     }
 
                     let html = "";
-                    data.data.forEach((cliente, i) => {
+                    clientesAdmin.forEach((cliente, i) => {
                         html += `
                             <tr>
                             <td>${i + 1}</td>
@@ -385,6 +482,10 @@
                             <td>${escapar(cliente.nombre)}</td>
                             <td>${escapar(cliente.telefono)}</td>
                             <td>${escapar(cliente.modelo)}</td>
+                            <td>
+                                <button class="tab-btn" style="padding:6px 12px;" onclick="editarCliente(${i})">✏️ Editar</button>
+                                <button class="tab-btn" style="padding:6px 12px; border-color:rgba(255,85,85,0.5);" onclick="eliminarCliente(${i})">🗑️ Eliminar</button>
+                            </td>
                             </tr>
                         `;
                     });
@@ -393,7 +494,7 @@
                 .catch(err => {
                     console.error("Error cargando clientes:", err);
                     tbody.innerHTML =
-                        '<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">❌ Error al cargar clientes</td></tr>';
+                        '<tr><td colspan="6" style="text-align:center; color:red; padding:20px;">❌ Error al cargar clientes</td></tr>';
                 });
         }
 
@@ -592,6 +693,13 @@
                 .catch(err => console.error("Error eliminando producto:", err));
         }
 
+        let pedidosAdmin = [];
+        let pedidoEditandoId = null;
+
+        function nombreClientePedido(pedido) {
+            return pedido.cliente_nombre || pedido.nombre || pedido.username || "—";
+        }
+
         function cargarPedidos() {
             const tbody = document.getElementById("tbodyPedidos");
 
@@ -602,26 +710,31 @@
                         throw new Error(data.message || "Error del servidor");
                     }
 
-                    if (data.data.length === 0) {
+                    pedidosAdmin = data.data;
+
+                    if (pedidosAdmin.length === 0) {
                         tbody.innerHTML =
-                            '<tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">No hay pedidos aún</td></tr>';
+                            '<tr><td colspan="6" style="text-align:center; color:#999; padding:20px;">No hay pedidos aún</td></tr>';
                         return;
                     }
 
                     let html = "";
-                    data.data.forEach((pedido, i) => {
+                    pedidosAdmin.forEach((pedido, i) => {
                         const productos = pedido.items
                             .map(item => `${item.nombre} (S/ ${item.precio})`)
                             .join(", ");
-                        const cliente = pedido.nombre || pedido.username || "—";
 
                         html += `
                             <tr>
                             <td>${i + 1}</td>
-                            <td>${escapar(cliente)}</td>
+                            <td>${escapar(nombreClientePedido(pedido))}</td>
                             <td>${escapar(productos)}</td>
                             <td>S/ ${pedido.total}</td>
                             <td>${escapar(pedido.fecha)}</td>
+                            <td>
+                                <button class="tab-btn" style="padding:6px 12px;" onclick="editarPedido(${i})">✏️ Editar</button>
+                                <button class="tab-btn" style="padding:6px 12px; border-color:rgba(255,85,85,0.5);" onclick="eliminarPedido(${i})">🗑️ Eliminar</button>
+                            </td>
                             </tr>
                         `;
                     });
@@ -630,9 +743,154 @@
                 .catch(err => {
                     console.error("Error cargando pedidos:", err);
                     tbody.innerHTML =
-                        '<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">❌ Error al cargar pedidos</td></tr>';
+                        '<tr><td colspan="6" style="text-align:center; color:red; padding:20px;">❌ Error al cargar pedidos</td></tr>';
                 });
         }
+
+        function agregarFilaPedido(nombre = "", precio = "") {
+            const fila = document.createElement("div");
+            fila.style.cssText = "display:flex; gap:8px; align-items:flex-start;";
+            fila.innerHTML = `
+                <input type="text" class="opinion-input item-nombre" placeholder="Producto" style="flex:2;">
+                <input type="number" class="opinion-input item-precio" placeholder="Precio" min="0" step="0.01" style="flex:1;">
+                <button class="tab-btn" style="padding:8px 12px;" title="Quitar producto" onclick="this.parentElement.remove(); calcularTotalPedido();">✖</button>
+            `;
+            fila.querySelector(".item-nombre").value = nombre;
+            fila.querySelector(".item-precio").value = precio;
+            fila.querySelector(".item-precio").addEventListener("input", calcularTotalPedido);
+            document.getElementById("itemsPedido").appendChild(fila);
+        }
+
+        function calcularTotalPedido() {
+            let total = 0;
+            document.querySelectorAll("#itemsPedido .item-precio").forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            document.getElementById("totalPedidoForm").textContent = "S/ " + total;
+        }
+
+        function guardarPedido() {
+            const cliente = document.getElementById("pedidoCliente").value.trim();
+            const mensaje = document.getElementById("mensajePedido");
+            const items = [];
+            let itemInvalido = false;
+
+            document.querySelectorAll("#itemsPedido > div").forEach(fila => {
+                const nombre = fila.querySelector(".item-nombre").value.trim();
+                const precio = parseFloat(fila.querySelector(".item-precio").value);
+
+                if (nombre === "" && isNaN(precio)) return;
+
+                if (nombre === "" || isNaN(precio) || precio <= 0) {
+                    itemInvalido = true;
+                    return;
+                }
+
+                items.push({ nombre, precio });
+            });
+
+            if (!cliente) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "Ingresa el nombre del cliente";
+                return;
+            }
+
+            if (itemInvalido) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "Hay productos con nombre o precio no válido";
+                return;
+            }
+
+            if (items.length === 0) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "Agrega al menos un producto";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("action", pedidoEditandoId ? "editar_pedido" : "agregar_pedido_admin");
+            if (pedidoEditandoId) formData.append("id", pedidoEditandoId);
+            formData.append("cliente", cliente);
+            formData.append("items", JSON.stringify(items));
+
+            fetch("../controllers/pedidos.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    mensaje.style.color = data.success ? "#00ff88" : "red";
+                    mensaje.innerHTML = (data.success ? "✅ " : "❌ ") + data.message;
+
+                    if (data.success) {
+                        cancelarEdicionPedido(true);
+                        cargarPedidos();
+                    }
+                })
+                .catch(() => {
+                    mensaje.style.color = "red";
+                    mensaje.innerHTML = "❌ Error al conectar con el servidor";
+                });
+        }
+
+        function editarPedido(indice) {
+            const pedido = pedidosAdmin[indice];
+
+            pedidoEditandoId = pedido.id;
+            document.getElementById("tituloPedido").textContent = "Editar pedido #" + pedido.id;
+            document.getElementById("pedidoCliente").value = nombreClientePedido(pedido);
+            document.getElementById("itemsPedido").innerHTML = "";
+            pedido.items.forEach(item => agregarFilaPedido(item.nombre, item.precio));
+            if (pedido.items.length === 0) agregarFilaPedido();
+            calcularTotalPedido();
+            document.getElementById("btnGuardarPedido").textContent = "Guardar Cambios";
+            document.getElementById("btnCancelarPedido").classList.remove("hidden");
+            document.getElementById("mensajePedido").innerHTML = "";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function cancelarEdicionPedido(mantenerMensaje) {
+            pedidoEditandoId = null;
+            document.getElementById("tituloPedido").textContent = "Registrar pedido";
+            document.getElementById("pedidoCliente").value = "";
+            document.getElementById("itemsPedido").innerHTML = "";
+            agregarFilaPedido();
+            calcularTotalPedido();
+            document.getElementById("btnGuardarPedido").textContent = "Guardar Pedido";
+            document.getElementById("btnCancelarPedido").classList.add("hidden");
+            if (!mantenerMensaje) document.getElementById("mensajePedido").innerHTML = "";
+        }
+
+        function eliminarPedido(indice) {
+            const pedido = pedidosAdmin[indice];
+
+            if (!confirm(`¿Eliminar el pedido de "${nombreClientePedido(pedido)}" por S/ ${pedido.total}?`)) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("action", "eliminar_pedido");
+            formData.append("id", pedido.id);
+
+            fetch("../controllers/pedidos.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const mensaje = document.getElementById("mensajePedido");
+                    mensaje.style.color = data.success ? "#00ff88" : "red";
+                    mensaje.innerHTML = (data.success ? "✅ " : "❌ ") + data.message;
+
+                    if (data.success) {
+                        if (pedidoEditandoId === pedido.id) cancelarEdicionPedido(true);
+                        cargarPedidos();
+                    }
+                })
+                .catch(err => console.error("Error eliminando pedido:", err));
+        }
+
+        agregarFilaPedido();
     </script>
 
 </body>

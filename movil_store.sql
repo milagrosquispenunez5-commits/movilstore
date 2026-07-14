@@ -78,11 +78,26 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 CREATE TABLE IF NOT EXISTS pedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    user_id INT NULL,
+    cliente_nombre VARCHAR(100) NULL,
     items TEXT NOT NULL,
     total DECIMAL(10,2) NOT NULL,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET @existe = (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pedidos' AND COLUMN_NAME = 'cliente_nombre');
+SET @sql = IF(@existe = 0,
+    'ALTER TABLE pedidos ADD COLUMN cliente_nombre VARCHAR(100) NULL',
+    'SELECT ''La columna pedidos.cliente_nombre ya existe'' AS aviso');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @nulable = (SELECT IS_NULLABLE FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pedidos' AND COLUMN_NAME = 'user_id');
+SET @sql = IF(@nulable = 'NO',
+    'ALTER TABLE pedidos MODIFY user_id INT NULL',
+    'SELECT ''La columna pedidos.user_id ya permite NULL'' AS aviso');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 CREATE TABLE IF NOT EXISTS productos (
     id INT AUTO_INCREMENT PRIMARY KEY,

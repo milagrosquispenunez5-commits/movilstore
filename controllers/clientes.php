@@ -54,13 +54,83 @@ if ($action === 'agregar_cliente') {
     exit;
 }
 
+if ($action === 'editar_cliente') {
+    requireAdmin();
+
+    $id = (int) ($_POST['id'] ?? 0);
+    $dni = trim($_POST['dni'] ?? '');
+    $nombre = trim($_POST['nombre'] ?? '');
+    $telefono = trim($_POST['telefono'] ?? '');
+    $modelo = trim($_POST['modelo'] ?? '');
+
+    if ($id <= 0 || $dni === '' || $nombre === '' || $telefono === '' || $modelo === '') {
+        echo json_encode(['success' => false, 'message' => 'Completa todos los campos']);
+        exit;
+    }
+
+    if (!preg_match('/^\d{8}$/', $dni)) {
+        echo json_encode(['success' => false, 'message' => 'El DNI debe tener 8 dígitos']);
+        exit;
+    }
+
+    if (!preg_match('/^\d{9}$/', $telefono)) {
+        echo json_encode(['success' => false, 'message' => 'El teléfono debe tener 9 dígitos']);
+        exit;
+    }
+
+    $stmt = $conn->prepare('SELECT id FROM clientes WHERE id = ?');
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    if (!$stmt->get_result()->fetch_assoc()) {
+        echo json_encode(['success' => false, 'message' => 'El cliente no existe']);
+        exit;
+    }
+
+    $stmt = $conn->prepare('SELECT id FROM clientes WHERE dni = ? AND id <> ?');
+    $stmt->bind_param('si', $dni, $id);
+    $stmt->execute();
+    if ($stmt->get_result()->fetch_assoc()) {
+        echo json_encode(['success' => false, 'message' => 'Ya existe otro cliente con ese DNI']);
+        exit;
+    }
+
+    $stmt = $conn->prepare('UPDATE clientes SET dni = ?, nombre = ?, telefono = ?, modelo = ? WHERE id = ?');
+    $stmt->bind_param('ssssi', $dni, $nombre, $telefono, $modelo, $id);
+    $stmt->execute();
+
+    echo json_encode(['success' => true, 'message' => 'Cliente actualizado correctamente']);
+    exit;
+}
+
+if ($action === 'eliminar_cliente') {
+    requireAdmin();
+
+    $id = (int) ($_POST['id'] ?? 0);
+
+    $stmt = $conn->prepare('SELECT id FROM clientes WHERE id = ?');
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    if (!$stmt->get_result()->fetch_assoc()) {
+        echo json_encode(['success' => false, 'message' => 'El cliente no existe']);
+        exit;
+    }
+
+    $stmt = $conn->prepare('DELETE FROM clientes WHERE id = ?');
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+
+    echo json_encode(['success' => true, 'message' => 'Cliente eliminado correctamente']);
+    exit;
+}
+
 if ($action === 'listar_clientes') {
     requireAdmin();
 
-    $result = $conn->query('SELECT dni, nombre, telefono, modelo FROM clientes ORDER BY id ASC');
+    $result = $conn->query('SELECT id, dni, nombre, telefono, modelo FROM clientes ORDER BY id ASC');
     $clientes = [];
 
     while ($row = $result->fetch_assoc()) {
+        $row['id'] = (int) $row['id'];
         $clientes[] = $row;
     }
 

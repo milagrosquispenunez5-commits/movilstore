@@ -1,9 +1,7 @@
 <?php
-// Controlador de autenticación: login, register (rol cliente), logout y check
 require __DIR__ . '/../config/helpers.php';
 require __DIR__ . '/../config/db.php';
 
-// Crear la tabla si no existe (instalación nueva)
 $conn->query("CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -14,14 +12,11 @@ $conn->query("CREATE TABLE IF NOT EXISTS users (
     telefono VARCHAR(20) NOT NULL DEFAULT ''
 )");
 
-// Migración para BDs creadas antes de los roles
 ensureColumn($conn, 'users', 'rol', "VARCHAR(10) NOT NULL DEFAULT 'cliente'");
 ensureColumn($conn, 'users', 'nombre', "VARCHAR(100) NOT NULL DEFAULT ''");
 ensureColumn($conn, 'users', 'dni', "VARCHAR(15) NOT NULL DEFAULT ''");
 ensureColumn($conn, 'users', 'telefono', "VARCHAR(20) NOT NULL DEFAULT ''");
 
-// Semilla: si no existe ningún administrador, se promueve al usuario 'admin'
-// (BDs creadas antes de los roles) o se crea admin / admin123
 $result = $conn->query("SELECT id FROM users WHERE rol = 'admin' LIMIT 1");
 if ($result->num_rows === 0) {
     $existente = $conn->query("SELECT id FROM users WHERE username = 'admin' LIMIT 1")->fetch_assoc();
@@ -67,7 +62,6 @@ if ($action === 'login') {
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();
 
-    // password_verify para contraseñas nuevas; hash_equals por si existen usuarios antiguos en texto plano
     if ($user && (password_verify($password, $user['password']) || hash_equals($user['password'], $password))) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
@@ -86,7 +80,6 @@ if ($action === 'login') {
 }
 
 if ($action === 'register') {
-    // Registro público: siempre crea cuentas con rol cliente
     $usuario = trim($_POST['usuario'] ?? '');
     $password = trim($_POST['password'] ?? '');
     $nombre = trim($_POST['nombre'] ?? '');

@@ -127,7 +127,6 @@
 
     <div class="container">
 
-        <!-- LOGIN -->
         <div id="login">
 
             <img src="../img/logo.png" class="logo">
@@ -172,7 +171,6 @@
 
         </div>
 
-        <!-- REGISTRO -->
         <div id="registro" class="oculto">
 
             <img src="../img/logo.png" class="logo">
@@ -245,7 +243,6 @@
             campo.type = campo.type === "password" ? "text" : "password";
         }
 
-        // Mostrar mensajes que auth.php envía por la URL (?error=... / ?ok=... / ?vista=registro)
         const params = new URLSearchParams(window.location.search);
         const mensaje = document.getElementById("mensaje");
 

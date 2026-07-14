@@ -1,12 +1,9 @@
 <?php
-// Controlador de pedidos: el cliente confirma su carrito; el admin los lista.
-// Al comprar, el cliente queda registrado/actualizado en la tabla clientes.
 require __DIR__ . '/../config/helpers.php';
 require __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
 
-// Crear la tabla si no existe
 $conn->query("CREATE TABLE IF NOT EXISTS pedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -49,7 +46,6 @@ if ($action === 'crear_pedido') {
     $stmt->bind_param('isd', $userId, $itemsJson, $total);
     $stmt->execute();
 
-    // Auto-registro en la lista de clientes del admin con los datos de la cuenta
     $stmt = $conn->prepare('SELECT nombre, dni, telefono FROM users WHERE id = ?');
     $stmt->bind_param('i', $userId);
     $stmt->execute();

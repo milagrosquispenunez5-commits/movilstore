@@ -1,11 +1,9 @@
 <?php
-// Controlador de clientes: registrar y listar (solo administrador)
 require __DIR__ . '/../config/helpers.php';
 require __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
 
-// Crear la tabla si no existe
 $conn->query("CREATE TABLE IF NOT EXISTS clientes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     dni VARCHAR(15) NOT NULL UNIQUE,

@@ -118,7 +118,6 @@
             <button class="tab-btn" onclick="verTab('productos', this)">📦 Productos</button>
         </div>
 
-        <!-- REGISTRAR CLIENTE -->
         <div id="tab-registrar" class="tab">
             <div class="opinion-panel form-admin">
                 <h3>Agregar un nuevo cliente</h3>
@@ -143,7 +142,6 @@
             </div>
         </div>
 
-        <!-- LISTA DE CLIENTES -->
         <div id="tab-clientes" class="tab hidden">
             <table class="tabla-clientes">
                 <thead>
@@ -163,7 +161,6 @@
             </table>
         </div>
 
-        <!-- OPINIONES -->
         <div id="tab-opiniones" class="tab hidden">
             <div class="opinion-panel panel-opiniones">
                 <h3>Resumen</h3>
@@ -205,7 +202,6 @@
             </div>
         </div>
 
-        <!-- PEDIDOS -->
         <div id="tab-pedidos" class="tab hidden">
             <table class="tabla-clientes">
                 <thead>
@@ -225,7 +221,6 @@
             </table>
         </div>
 
-        <!-- PRODUCTOS -->
         <div id="tab-productos" class="tab hidden">
             <div class="opinion-panel form-admin">
                 <h3 id="tituloProducto">Agregar producto</h3>
@@ -270,7 +265,6 @@
     </main>
 
     <script>
-        // Guard: solo entra un administrador con sesión iniciada
         fetch("../controllers/auth.php?action=check")
             .then(response => response.json())
             .then(data => {
@@ -409,7 +403,6 @@
                 .then(data => {
                     if (!data.success) return;
 
-                    // Buenas: 4-5 estrellas | Regulares: 3 | Malas: 1-2
                     let buenas = 0, regulares = 0, malas = 0;
 
                     data.data.forEach(op => {
@@ -459,7 +452,6 @@
                 });
         }
 
-        // ===== PRODUCTOS =====
         let productosAdmin = [];
         let productoEditandoId = null;
 

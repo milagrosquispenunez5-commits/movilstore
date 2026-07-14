@@ -1,11 +1,9 @@
 <?php
-// Controlador de opiniones: los clientes con sesión opinan, solo el admin las ve
 require __DIR__ . '/../config/helpers.php';
 require __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
 
-// Crear la tabla si no existe
 $conn->query("CREATE TABLE IF NOT EXISTS opinions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NULL,
@@ -16,7 +14,6 @@ $conn->query("CREATE TABLE IF NOT EXISTS opinions (
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
-// Migración para BDs creadas antes de los roles
 ensureColumn($conn, 'opinions', 'user_id', 'INT NULL');
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
@@ -37,7 +34,6 @@ if ($action === 'get_opinions') {
 }
 
 if ($action === 'mis_opiniones') {
-    // Cada usuario con sesión puede ver únicamente sus propias opiniones
     requireLogin();
 
     $userId = $_SESSION['user_id'];
@@ -71,7 +67,6 @@ if ($action === 'add_opinion_client') {
         $rating = 5;
     }
 
-    // El nombre sale de la cuenta con la que inició sesión
     $userId = $_SESSION['user_id'];
     $nombre = $_SESSION['nombre'] ?? $_SESSION['username'];
     $email = '';

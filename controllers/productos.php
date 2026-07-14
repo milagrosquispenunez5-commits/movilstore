@@ -1,11 +1,9 @@
 <?php
-// Controlador de productos: la tienda los lista para todos, solo el admin los gestiona
 require __DIR__ . '/../config/helpers.php';
 require __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
 
-// Crear la tabla si no existe
 $conn->query("CREATE TABLE IF NOT EXISTS productos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -14,7 +12,6 @@ $conn->query("CREATE TABLE IF NOT EXISTS productos (
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
-// Semilla: los productos que antes estaban fijos en el HTML
 $result = $conn->query('SELECT id FROM productos LIMIT 1');
 if ($result->num_rows === 0) {
     $conn->query("INSERT INTO productos (nombre, precio, imagen) VALUES
@@ -23,7 +20,6 @@ if ($result->num_rows === 0) {
         ('IPHONE 16', 5500.00, 'img/iphone16.jpg')");
 }
 
-// Guarda la imagen subida en img/productos/ y devuelve su ruta relativa (o null si no se envió)
 function guardarImagen() {
     if (!isset($_FILES['imagen']) || $_FILES['imagen']['error'] === UPLOAD_ERR_NO_FILE) {
         return null;
@@ -57,7 +53,6 @@ function guardarImagen() {
     return 'img/productos/' . $nombreArchivo;
 }
 
-// Borra del disco solo las imágenes subidas desde el panel (no toca las originales de img/)
 function borrarImagen($ruta) {
     if (strpos($ruta, 'img/productos/') === 0) {
         $archivo = __DIR__ . '/../' . $ruta;

@@ -14,7 +14,6 @@ body {
   color: white;
 }
 
-/* SCROLL */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -28,7 +27,6 @@ body {
   border-radius: 20px;
 }
 
-/* HEADER */
 header {
   position: fixed;
   width: 100%;
@@ -44,14 +42,12 @@ header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* LOGO */
 .logo img {
   width: 240px;
   max-height: 90px;
   object-fit: contain;
 }
 
-/* NAV */
 nav {
   display: flex;
   align-items: center;
@@ -69,7 +65,6 @@ nav a:hover {
   color: #00c3ff;
 }
 
-/* HERO */
 .hero {
   height: 100vh;
   background:
@@ -102,7 +97,6 @@ nav a:hover {
   margin-top: 25px;
 }
 
-/* BOTONES */
 .btn {
   padding: 12px 22px;
   border: none;
@@ -121,7 +115,6 @@ nav a:hover {
   transform: scale(1.05);
 }
 
-/* SECCIONES */
 .section {
   padding: 120px 8%;
   text-align: center;
@@ -136,7 +129,6 @@ nav a:hover {
   letter-spacing: 2px;
 }
 
-/* CARDS */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -182,7 +174,6 @@ nav a:hover {
   font-weight: bold;
 }
 
-/* NOSOTROS */
 .nosotros-box {
   display: flex;
   justify-content: center;
@@ -203,7 +194,6 @@ nav a:hover {
   line-height: 1.8;
 }
 
-/* GANADORES */
 .ganadores {
   width: 100%;
   margin-top: 60px;
@@ -242,7 +232,6 @@ nav a:hover {
   font-size: 18px;
 }
 
-/* PROMOS */
 .promos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -262,7 +251,6 @@ nav a:hover {
   box-shadow: 0 0 25px rgba(0, 195, 255, 0.4);
 }
 
-/* REDES */
 .redes-box {
   background: #0057b8;
   padding: 35px;
@@ -300,7 +288,6 @@ a.red-social {
   line-height: 1.6;
 }
 
-/* OPINIONES */
 .opinion-box {
   max-width: 500px;
   margin: auto;
@@ -329,7 +316,6 @@ a.red-social {
   margin-top: 50px;
 }
 
-/* CLIENTES */
 .tabla-clientes {
   width: 100%;
   max-width: 800px;
@@ -386,7 +372,6 @@ a.red-social {
   margin-top: 10px;
 }
 
-/* OPINIONES: layout compacto en dos paneles */
 .opiniones-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -462,7 +447,6 @@ textarea.opinion-input {
   gap: 30px;
 }
 
-/* Riel fijo: marca hasta dónde puede llegar la barra */
 .barra-track {
   width: 60px;
   height: 150px;
@@ -498,7 +482,6 @@ textarea.opinion-input {
   }
 }
 
-/* CARRITO */
 .carrito-float {
   position: fixed;
   bottom: 20px;
@@ -521,7 +504,6 @@ textarea.opinion-input {
   transform: scale(1.1);
 }
 
-/* WHATSAPP FLOTANTE */
 .whatsapp-float {
   position: fixed;
   bottom: 105px;
@@ -549,7 +531,6 @@ textarea.opinion-input {
   fill: white;
 }
 
-/* MODAL */
 .modal {
   display: none;
   position: fixed;
@@ -576,7 +557,6 @@ textarea.opinion-input {
   display: none;
 }
 
-/* FOOTER */
 footer {
   background: #050b16;
   padding: 30px;
@@ -590,7 +570,6 @@ footer p {
   margin-top: 10px;
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
   .hero h1 {
     font-size: 45px;

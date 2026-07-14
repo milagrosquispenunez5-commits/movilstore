@@ -1,7 +1,6 @@
 let carrito = [];
 let total = 0;
 
-// Estado de la sesión (se llena al cargar la página)
 let sesion = { logged: false, rol: null, nombre: null };
 
 function mostrar(id) {
@@ -70,7 +69,6 @@ function escapar(texto) {
   return div.innerHTML;
 }
 
-// Carga los productos desde la BD y arma las cards de la tienda
 function cargarProductos() {
   const contenedor = document.getElementById("listaProductos");
 
@@ -119,7 +117,6 @@ function cargarProductos() {
     });
 }
 
-// Consulta la sesión y adapta el header y la sección de opiniones
 function cargarSesion() {
   return fetch("controllers/auth.php?action=check")
     .then((response) => response.json())
@@ -157,7 +154,6 @@ function cargarSesion() {
     });
 }
 
-// Muestra las opiniones propias del usuario con sesión (no las de otros)
 function cargarMisOpiniones() {
   fetch("controllers/opiniones.php?action=mis_opiniones")
     .then((response) => response.json())
@@ -193,7 +189,6 @@ function cargarMisOpiniones() {
     });
 }
 
-// Envía el carrito como pedido (requiere sesión iniciada)
 function finalizarCompra() {
   if (carrito.length === 0) {
     alert("El carrito está vacío");
@@ -255,7 +250,6 @@ document.addEventListener("DOMContentLoaded", function () {
   cargarSesion();
   setClientRating(5);
 
-  // Abrir una sección directa desde la URL (ej: index.html#opiniones)
   if (location.hash) {
     const id = location.hash.substring(1);
     const sec = document.getElementById(id);

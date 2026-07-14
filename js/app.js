@@ -1,6 +1,9 @@
 let carrito = [];
 let total = 0;
 
+// Estado de la sesión (se llena al cargar la página)
+let sesion = { logged: false, rol: null, nombre: null };
+
 function mostrar(id) {
   document
     .querySelectorAll(".section")
@@ -67,108 +70,124 @@ function escapar(texto) {
   return div.innerHTML;
 }
 
-function cargarClientes() {
-  const tbody = document.getElementById("tbodyClientes");
-
-  fetch("controllers/clientes.php?action=listar_clientes")
+// Consulta la sesión y adapta el header y la sección de opiniones
+function cargarSesion() {
+  return fetch("controllers/auth.php?action=check")
     .then((response) => response.json())
     .then((data) => {
-      if (!data.success) {
-        throw new Error(data.message || "Error del servidor");
-      }
+      sesion.logged = !!data.logged;
+      sesion.rol = data.rol;
+      sesion.nombre = data.nombre || data.username;
 
-      if (data.data.length === 0) {
-        tbody.innerHTML =
-          '<tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">No hay clientes registrados aún</td></tr>';
-        return;
-      }
+      const nav = document.getElementById("navSession");
+      const aviso = document.getElementById("opinionLoginAviso");
+      const formPanel = document.getElementById("opinionFormPanel");
 
-      let html = "";
-      data.data.forEach((cliente, i) => {
-        html += `
-          <tr>
-          <td>${i + 1}</td>
-          <td>${escapar(cliente.dni)}</td>
-          <td>${escapar(cliente.nombre)}</td>
-          <td>${escapar(cliente.telefono)}</td>
-          <td>${escapar(cliente.modelo)}</td>
-          </tr>
-          `;
-      });
-      tbody.innerHTML = html;
+      if (sesion.logged) {
+        let html = `<span style="color:#00c3ff; margin-left:20px; font-size:15px;">👤 ${escapar(sesion.nombre)}</span>`;
+
+        if (sesion.rol === "admin") {
+          html += `<a href="views/admin.html">Panel Admin</a>`;
+        }
+
+        html += `<a href="controllers/auth.php?action=logout">Cerrar Sesión</a>`;
+        nav.innerHTML = html;
+
+        aviso.classList.add("hidden");
+        formPanel.classList.remove("hidden");
+        cargarMisOpiniones();
+      } else {
+        nav.innerHTML = `<a href="views/login.html">Iniciar Sesión</a>`;
+
+        aviso.classList.remove("hidden");
+        formPanel.classList.add("hidden");
+      }
     })
     .catch((err) => {
-      console.error("Error cargando clientes:", err);
-      tbody.innerHTML =
-        '<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">❌ Error al cargar clientes. Abre la página desde el servidor (ejecuta ./iniciar.sh y entra a http://localhost:8000)</td></tr>';
+      console.error("Error consultando la sesión:", err);
     });
 }
 
-let clientRating = 5;
-
-function cargarOpinionesClientes() {
-  fetch("controllers/opiniones.php?action=get_opinions")
+// Muestra las opiniones propias del usuario con sesión (no las de otros)
+function cargarMisOpiniones() {
+  fetch("controllers/opiniones.php?action=mis_opiniones")
     .then((response) => response.json())
     .then((data) => {
       if (!data.success) return;
 
-      // Buenas: 4-5 estrellas | Regulares: 3 | Malas: 1-2
-      let buenas = 0,
-        regulares = 0,
-        malas = 0;
+      const box = document.getElementById("misOpinionesBox");
+      const lista = document.getElementById("misOpiniones");
 
-      data.data.forEach((op) => {
-        if (op.rating >= 4) buenas++;
-        else if (op.rating === 3) regulares++;
-        else malas++;
-      });
+      if (data.data.length === 0) {
+        box.classList.add("hidden");
+        return;
+      }
 
-      const total = data.data.length;
-      document.getElementById("totalOpiniones").textContent =
-        total === 0
-          ? "No hay opiniones aún. ¡Sé el primero!"
-          : "Total de opiniones: " + total;
-
-      // Altura proporcional al total: el riel completo representa el 100%
-      // de las opiniones (ej: 3 buenas de 5 en total = 60% del riel)
-      const altura = (n) =>
-        total === 0 || n === 0 ? "0%" : Math.round((n / total) * 100) + "%";
-
-      document.getElementById("barraBuenas").style.height = altura(buenas);
-      document.getElementById("barraRegulares").style.height = altura(regulares);
-      document.getElementById("barraMalas").style.height = altura(malas);
-
-      document.getElementById("cantBuenas").textContent = buenas;
-      document.getElementById("cantRegulares").textContent = regulares;
-      document.getElementById("cantMalas").textContent = malas;
-
-      // Lista de opiniones debajo del gráfico
       let html = "";
-      if (total === 0) {
-        html =
-          '<p style="text-align:center; color:#999; padding:20px;">No hay opiniones aún. ¡Sé el primero!</p>';
-      } else {
-        data.data.forEach((op) => {
-          html += `
-            <div style="background:rgba(11,18,32,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 14px; margin-bottom:10px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <strong style="color:#00c3ff; font-size:14px;">${escapar(op.nombre)}</strong>
-                <span style="color:#ffd700; font-size:13px;">${"★".repeat(op.rating)}</span>
-              </div>
-              <p style="color:#ddd; line-height:1.5; font-size:14px;">${escapar(op.opinion)}</p>
+      data.data.forEach((op) => {
+        html += `
+          <div style="background:rgba(11,18,32,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 14px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <span style="color:#ffd700; font-size:13px;">${"★".repeat(op.rating)}</span>
               <small style="color:#8fa3b8; font-size:12px;">${escapar(op.fecha)}</small>
             </div>
-          `;
-        });
-      }
-      document.getElementById("opinionsContainer").innerHTML = html;
+            <p style="color:#ddd; line-height:1.5; font-size:14px;">${escapar(op.opinion)}</p>
+          </div>
+        `;
+      });
+
+      lista.innerHTML = html;
+      box.classList.remove("hidden");
     })
     .catch((err) => {
-      console.error("Error cargando opiniones:", err);
-      document.getElementById("totalOpiniones").textContent =
-        "Error al cargar el resumen de opiniones";
+      console.error("Error cargando tus opiniones:", err);
     });
 }
+
+// Envía el carrito como pedido (requiere sesión iniciada)
+function finalizarCompra() {
+  if (carrito.length === 0) {
+    alert("El carrito está vacío");
+    return;
+  }
+
+  if (!sesion.logged) {
+    if (
+      confirm(
+        "Para finalizar tu compra necesitas una cuenta de cliente. ¿Ir a iniciar sesión?"
+      )
+    ) {
+      window.location.href = "views/login.html";
+    }
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("action", "crear_pedido");
+  formData.append("items", JSON.stringify(carrito));
+
+  fetch("controllers/pedidos.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        alert("✅ " + data.message);
+        carrito = [];
+        actualizarCarrito();
+        cerrarCarrito();
+      } else {
+        alert("❌ " + data.message);
+      }
+    })
+    .catch((err) => {
+      console.error("Error:", err);
+      alert("❌ Error al registrar el pedido");
+    });
+}
+
+let clientRating = 5;
 
 function setClientRating(rating) {
   clientRating = rating;
@@ -183,8 +202,7 @@ function setClientRating(rating) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  cargarOpinionesClientes();
-  cargarClientes();
+  cargarSesion();
   setClientRating(5);
 
   // Abrir una sección directa desde la URL (ej: index.html#opiniones)
@@ -201,17 +219,9 @@ document.addEventListener("DOMContentLoaded", function () {
     opinionForm.addEventListener("submit", function (e) {
       e.preventDefault();
 
-      const nombre = document
-        .getElementById("nombreCliente")
-        .value.trim();
       const comentario = document
         .getElementById("comentario")
         .value.trim();
-
-      if (!nombre) {
-        alert("Por favor, ingresa tu nombre");
-        return;
-      }
 
       if (!comentario) {
         alert("Por favor, escribe una opinión");
@@ -220,8 +230,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const formData = new FormData();
       formData.append("action", "add_opinion_client");
-      formData.append("nombre", nombre);
-      formData.append("email", "");
       formData.append("opinion", comentario);
       formData.append("rating", clientRating);
 
@@ -233,10 +241,9 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((data) => {
           if (data.success) {
             alert("✅ Gracias por tu opinión");
-            document.getElementById("nombreCliente").value = "";
             document.getElementById("comentario").value = "";
             setClientRating(5);
-            cargarOpinionesClientes();
+            cargarMisOpiniones();
           } else {
             alert("❌ " + data.message);
           }

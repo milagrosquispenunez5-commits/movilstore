@@ -1,4 +1,6 @@
 <?php
+// Controlador de opiniones: los clientes con sesión opinan, solo el admin las ve
+require __DIR__ . '/../config/helpers.php';
 require __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
@@ -6,6 +8,7 @@ header('Content-Type: application/json');
 // Crear la tabla si no existe
 $conn->query("CREATE TABLE IF NOT EXISTS opinions (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
     opinion TEXT NOT NULL,
@@ -13,9 +16,14 @@ $conn->query("CREATE TABLE IF NOT EXISTS opinions (
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
+// Migración para BDs creadas antes de los roles
+ensureColumn($conn, 'opinions', 'user_id', 'INT NULL');
+
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 if ($action === 'get_opinions') {
+    requireAdmin();
+
     $result = $conn->query("SELECT nombre, opinion, rating, DATE_FORMAT(fecha, '%d/%m/%Y %H:%i') AS fecha FROM opinions ORDER BY id DESC");
     $opiniones = [];
 
@@ -28,14 +36,34 @@ if ($action === 'get_opinions') {
     exit;
 }
 
+if ($action === 'mis_opiniones') {
+    // Cada usuario con sesión puede ver únicamente sus propias opiniones
+    requireLogin();
+
+    $userId = $_SESSION['user_id'];
+    $stmt = $conn->prepare("SELECT opinion, rating, DATE_FORMAT(fecha, '%d/%m/%Y %H:%i') AS fecha FROM opinions WHERE user_id = ? ORDER BY id DESC");
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $opiniones = [];
+    while ($row = $result->fetch_assoc()) {
+        $row['rating'] = (int) $row['rating'];
+        $opiniones[] = $row;
+    }
+
+    echo json_encode(['success' => true, 'data' => $opiniones]);
+    exit;
+}
+
 if ($action === 'add_opinion_client') {
-    $nombre = trim($_POST['nombre'] ?? '');
-    $email = trim($_POST['email'] ?? '');
+    requireLogin();
+
     $opinion = trim($_POST['opinion'] ?? '');
     $rating = (int) ($_POST['rating'] ?? 5);
 
-    if ($nombre === '' || $opinion === '') {
-        echo json_encode(['success' => false, 'message' => 'Completa todos los campos']);
+    if ($opinion === '') {
+        echo json_encode(['success' => false, 'message' => 'Escribe tu opinión']);
         exit;
     }
 
@@ -43,8 +71,13 @@ if ($action === 'add_opinion_client') {
         $rating = 5;
     }
 
-    $stmt = $conn->prepare('INSERT INTO opinions (nombre, email, opinion, rating) VALUES (?, ?, ?, ?)');
-    $stmt->bind_param('sssi', $nombre, $email, $opinion, $rating);
+    // El nombre sale de la cuenta con la que inició sesión
+    $userId = $_SESSION['user_id'];
+    $nombre = $_SESSION['nombre'] ?? $_SESSION['username'];
+    $email = '';
+
+    $stmt = $conn->prepare('INSERT INTO opinions (user_id, nombre, email, opinion, rating) VALUES (?, ?, ?, ?, ?)');
+    $stmt->bind_param('isssi', $userId, $nombre, $email, $opinion, $rating);
     $stmt->execute();
 
     echo json_encode(['success' => true, 'message' => 'Opinión guardada correctamente']);

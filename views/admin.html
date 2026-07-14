@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Panel de Administración - MOVIL STORE</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+        rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="../css/estilos.css">
+
+    <style>
+        .panel {
+            padding: 140px 8% 60px;
+            text-align: center;
+            min-height: 100vh;
+        }
+
+        .panel h2 {
+            font-size: 34px;
+            margin-bottom: 30px;
+            color: #00c3ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 35px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: 1px solid rgba(0, 195, 255, 0.4);
+            border-radius: 10px;
+            background: transparent;
+            color: #ccc;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab-btn:hover {
+            border-color: #00c3ff;
+            color: white;
+        }
+
+        .tab-btn.activa {
+            background: #00c3ff;
+            border-color: #00c3ff;
+            color: white;
+        }
+
+        .form-admin {
+            max-width: 480px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        #mensaje {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .panel-opiniones {
+            max-width: 720px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .panel-opiniones .lista-opiniones {
+            max-height: 340px;
+        }
+
+        .nav-usuario {
+            color: #00c3ff;
+            margin-left: 20px;
+            font-size: 15px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">
+            <img src="../img/logo.png">
+        </div>
+
+        <nav>
+            <span class="nav-usuario" id="adminNombre">👤</span>
+            <a href="../index.html">Ver Tienda</a>
+            <a href="../controllers/auth.php?action=logout">Cerrar Sesión</a>
+        </nav>
+    </header>
+
+    <main class="panel">
+
+        <h2>Panel de Administración</h2>
+
+        <div class="tabs">
+            <button class="tab-btn activa" onclick="verTab('registrar', this)">➕ Registrar Cliente</button>
+            <button class="tab-btn" onclick="verTab('clientes', this)">📋 Lista de Clientes</button>
+            <button class="tab-btn" onclick="verTab('opiniones', this)">⭐ Opiniones</button>
+            <button class="tab-btn" onclick="verTab('pedidos', this)">🛒 Pedidos</button>
+        </div>
+
+        <!-- REGISTRAR CLIENTE -->
+        <div id="tab-registrar" class="tab">
+            <div class="opinion-panel form-admin">
+                <h3>Agregar un nuevo cliente</h3>
+
+                <label class="opinion-label" for="dniCliente">DNI</label>
+                <input type="text" id="dniCliente" class="opinion-input" placeholder="DNI (8 dígitos)" maxlength="8">
+
+                <label class="opinion-label" for="nombreCliente">Nombre</label>
+                <input type="text" id="nombreCliente" class="opinion-input" placeholder="Nombre completo">
+
+                <label class="opinion-label" for="telefonoCliente">Número de teléfono</label>
+                <input type="text" id="telefonoCliente" class="opinion-input" placeholder="Teléfono (9 dígitos)" maxlength="9">
+
+                <label class="opinion-label" for="modeloCliente">Modelo de equipo comprado</label>
+                <input type="text" id="modeloCliente" class="opinion-input" placeholder="Ej: HONOR X8C">
+
+                <button class="btn" style="width:100%" onclick="registrarCliente()">
+                    Registrar Cliente
+                </button>
+
+                <p id="mensaje"></p>
+            </div>
+        </div>
+
+        <!-- LISTA DE CLIENTES -->
+        <div id="tab-clientes" class="tab hidden">
+            <table class="tabla-clientes">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>DNI</th>
+                        <th>Nombre</th>
+                        <th>Teléfono</th>
+                        <th>Equipo Comprado</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyClientes">
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:#999; padding:20px;">Cargando clientes...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- OPINIONES -->
+        <div id="tab-opiniones" class="tab hidden">
+            <div class="opinion-panel panel-opiniones">
+                <h3>Resumen</h3>
+                <p id="totalOpiniones" style="color:#ccc; font-size:14px;"></p>
+
+                <div class="barras" style="height:auto; margin-top:15px; gap:30px;">
+                    <div class="barra-item">
+                        <div class="barra-track">
+                            <div class="barra" id="barraBuenas" style="background:#00ff88;"></div>
+                        </div>
+                        <div class="barra-text">
+                            😀 Buenas<br>
+                            <strong id="cantBuenas" style="color:#00ff88;">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="barra-item">
+                        <div class="barra-track">
+                            <div class="barra" id="barraRegulares" style="background:#ffd700;"></div>
+                        </div>
+                        <div class="barra-text">
+                            😐 Regulares<br>
+                            <strong id="cantRegulares" style="color:#ffd700;">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="barra-item">
+                        <div class="barra-track">
+                            <div class="barra" id="barraMalas" style="background:#ff5555;"></div>
+                        </div>
+                        <div class="barra-text">
+                            😠 Malas<br>
+                            <strong id="cantMalas" style="color:#ff5555;">0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lista-opiniones" id="opinionsContainer"></div>
+            </div>
+        </div>
+
+        <!-- PEDIDOS -->
+        <div id="tab-pedidos" class="tab hidden">
+            <table class="tabla-clientes">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Cliente</th>
+                        <th>Productos</th>
+                        <th>Total</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyPedidos">
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:#999; padding:20px;">Cargando pedidos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <script>
+        // Guard: solo entra un administrador con sesión iniciada
+        fetch("../controllers/auth.php?action=check")
+            .then(response => response.json())
+            .then(data => {
+                if (!data.logged) {
+                    window.location.href = "login.html?error=" + encodeURIComponent("Inicia sesión primero");
+                    return;
+                }
+
+                if (data.rol !== "admin") {
+                    window.location.href = "../index.html";
+                    return;
+                }
+
+                document.getElementById("adminNombre").textContent = "👤 " + (data.nombre || data.username);
+
+                cargarClientes();
+                cargarOpiniones();
+                cargarPedidos();
+            })
+            .catch(() => {
+                window.location.href = "login.html?error=" + encodeURIComponent("Inicia sesión primero");
+            });
+
+        function verTab(id, boton) {
+            document.querySelectorAll(".tab").forEach(t => t.classList.add("hidden"));
+            document.getElementById("tab-" + id).classList.remove("hidden");
+
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("activa"));
+            boton.classList.add("activa");
+        }
+
+        function escapar(texto) {
+            const div = document.createElement("div");
+            div.textContent = texto;
+            return div.innerHTML;
+        }
+
+        function registrarCliente() {
+            const dni = document.getElementById("dniCliente").value.trim();
+            const nombre = document.getElementById("nombreCliente").value.trim();
+            const telefono = document.getElementById("telefonoCliente").value.trim();
+            const modelo = document.getElementById("modeloCliente").value.trim();
+            const mensaje = document.getElementById("mensaje");
+
+            if (!dni || !nombre || !telefono || !modelo) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "Completa todos los campos";
+                return;
+            }
+
+            if (!/^\d{8}$/.test(dni)) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "El DNI debe tener 8 dígitos";
+                return;
+            }
+
+            if (!/^\d{9}$/.test(telefono)) {
+                mensaje.style.color = "red";
+                mensaje.innerHTML = "El teléfono debe tener 9 dígitos";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("action", "agregar_cliente");
+            formData.append("dni", dni);
+            formData.append("nombre", nombre);
+            formData.append("telefono", telefono);
+            formData.append("modelo", modelo);
+
+            fetch("../controllers/clientes.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mensaje.style.color = "#00ff88";
+                        mensaje.innerHTML = "✅ " + data.message;
+                        document.getElementById("dniCliente").value = "";
+                        document.getElementById("nombreCliente").value = "";
+                        document.getElementById("telefonoCliente").value = "";
+                        document.getElementById("modeloCliente").value = "";
+                        cargarClientes();
+                    } else {
+                        mensaje.style.color = "red";
+                        mensaje.innerHTML = "❌ " + data.message;
+                    }
+                })
+                .catch(() => {
+                    mensaje.style.color = "red";
+                    mensaje.innerHTML = "❌ Error al conectar con el servidor";
+                });
+        }
+
+        function cargarClientes() {
+            const tbody = document.getElementById("tbodyClientes");
+
+            fetch("../controllers/clientes.php?action=listar_clientes")
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.message || "Error del servidor");
+                    }
+
+                    if (data.data.length === 0) {
+                        tbody.innerHTML =
+                            '<tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">No hay clientes registrados aún</td></tr>';
+                        return;
+                    }
+
+                    let html = "";
+                    data.data.forEach((cliente, i) => {
+                        html += `
+                            <tr>
+                            <td>${i + 1}</td>
+                            <td>${escapar(cliente.dni)}</td>
+                            <td>${escapar(cliente.nombre)}</td>
+                            <td>${escapar(cliente.telefono)}</td>
+                            <td>${escapar(cliente.modelo)}</td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Error cargando clientes:", err);
+                    tbody.innerHTML =
+                        '<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">❌ Error al cargar clientes</td></tr>';
+                });
+        }
+
+        function cargarOpiniones() {
+            fetch("../controllers/opiniones.php?action=get_opinions")
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) return;
+
+                    // Buenas: 4-5 estrellas | Regulares: 3 | Malas: 1-2
+                    let buenas = 0, regulares = 0, malas = 0;
+
+                    data.data.forEach(op => {
+                        if (op.rating >= 4) buenas++;
+                        else if (op.rating === 3) regulares++;
+                        else malas++;
+                    });
+
+                    const total = data.data.length;
+                    document.getElementById("totalOpiniones").textContent =
+                        total === 0 ? "No hay opiniones aún" : "Total de opiniones: " + total;
+
+                    const altura = n =>
+                        total === 0 || n === 0 ? "0%" : Math.round((n / total) * 100) + "%";
+
+                    document.getElementById("barraBuenas").style.height = altura(buenas);
+                    document.getElementById("barraRegulares").style.height = altura(regulares);
+                    document.getElementById("barraMalas").style.height = altura(malas);
+
+                    document.getElementById("cantBuenas").textContent = buenas;
+                    document.getElementById("cantRegulares").textContent = regulares;
+                    document.getElementById("cantMalas").textContent = malas;
+
+                    let html = "";
+                    if (total === 0) {
+                        html = '<p style="text-align:center; color:#999; padding:20px;">No hay opiniones aún</p>';
+                    } else {
+                        data.data.forEach(op => {
+                            html += `
+                                <div style="background:rgba(11,18,32,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 14px; margin-bottom:10px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                                        <strong style="color:#00c3ff; font-size:14px;">${escapar(op.nombre)}</strong>
+                                        <span style="color:#ffd700; font-size:13px;">${"★".repeat(op.rating)}</span>
+                                    </div>
+                                    <p style="color:#ddd; line-height:1.5; font-size:14px;">${escapar(op.opinion)}</p>
+                                    <small style="color:#8fa3b8; font-size:12px;">${escapar(op.fecha)}</small>
+                                </div>
+                            `;
+                        });
+                    }
+                    document.getElementById("opinionsContainer").innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Error cargando opiniones:", err);
+                    document.getElementById("totalOpiniones").textContent =
+                        "Error al cargar las opiniones";
+                });
+        }
+
+        function cargarPedidos() {
+            const tbody = document.getElementById("tbodyPedidos");
+
+            fetch("../controllers/pedidos.php?action=listar_pedidos")
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.message || "Error del servidor");
+                    }
+
+                    if (data.data.length === 0) {
+                        tbody.innerHTML =
+                            '<tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">No hay pedidos aún</td></tr>';
+                        return;
+                    }
+
+                    let html = "";
+                    data.data.forEach((pedido, i) => {
+                        const productos = pedido.items
+                            .map(item => `${item.nombre} (S/ ${item.precio})`)
+                            .join(", ");
+                        const cliente = pedido.nombre || pedido.username || "—";
+
+                        html += `
+                            <tr>
+                            <td>${i + 1}</td>
+                            <td>${escapar(cliente)}</td>
+                            <td>${escapar(productos)}</td>
+                            <td>S/ ${pedido.total}</td>
+                            <td>${escapar(pedido.fecha)}</td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Error cargando pedidos:", err);
+                    tbody.innerHTML =
+                        '<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">❌ Error al cargar pedidos</td></tr>';
+                });
+        }
+    </script>
+
+</body>
+
+</html>

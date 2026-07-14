@@ -68,15 +68,9 @@
           "
           >Opinión Cliente</a
         >
-        <a
-          href="#"
-          onclick="
-            mostrar('clientes');
-            return false;
-          "
-          >Lista de Clientes</a
-        >
-        <a href="views/login.html">Iniciar Sesión</a>
+        <span id="navSession">
+          <a href="views/login.html">Iniciar Sesión</a>
+        </span>
       </nav>
     </header>
 
@@ -277,124 +271,59 @@
 
     <!-- OPINIONES -->
     <section id="opiniones" class="section hidden">
-      <h2>Opiniones de Clientes</h2>
+      <h2>Comparte tu Opinión</h2>
 
-      <div class="opiniones-grid">
-        <!-- Panel: formulario -->
-        <div class="opinion-panel">
-          <h3>Comparte tu opinión</h3>
+      <!-- Aviso para visitantes sin sesión -->
+      <div
+        id="opinionLoginAviso"
+        class="opinion-panel"
+        style="max-width: 520px; margin: 0 auto; text-align: center"
+      >
+        <h3>Inicia sesión para opinar</h3>
+        <p style="color: #ccc; font-size: 14px; margin-bottom: 18px">
+          Para dejar tu opinión necesitas una cuenta de cliente.
+        </p>
+        <a class="btn" href="views/login.html" style="text-decoration: none"
+          >Iniciar Sesión / Crear Cuenta</a
+        >
+      </div>
 
-          <form id="opinionForm">
-            <label class="opinion-label" for="nombreCliente">Tu nombre</label>
-            <input
-              type="text"
-              id="nombreCliente"
-              class="opinion-input"
-              placeholder="Tu nombre"
-            />
+      <!-- Formulario (solo con sesión iniciada) -->
+      <div
+        id="opinionFormPanel"
+        class="opinion-panel hidden"
+        style="max-width: 520px; margin: 0 auto; text-align: left"
+      >
+        <h3>Cuéntanos tu experiencia</h3>
 
-            <label class="opinion-label" for="comentario">Tu opinión</label>
-            <textarea
-              id="comentario"
-              class="opinion-input"
-              placeholder="Cuéntanos tu experiencia con MOVIL STORE..."
-            ></textarea>
+        <form id="opinionForm">
+          <label class="opinion-label" for="comentario">Tu opinión</label>
+          <textarea
+            id="comentario"
+            class="opinion-input"
+            placeholder="Cuéntanos tu experiencia con MOVIL STORE..."
+          ></textarea>
 
-            <label class="opinion-label">Calificación</label>
-            <div class="estrellas">
-              <span class="star" onclick="setClientRating(1)">★</span>
-              <span class="star" onclick="setClientRating(2)">★</span>
-              <span class="star" onclick="setClientRating(3)">★</span>
-              <span class="star" onclick="setClientRating(4)">★</span>
-              <span class="star" onclick="setClientRating(5)">★</span>
-            </div>
-
-            <button type="submit" class="btn" style="width: 100%">
-              Enviar Opinión
-            </button>
-          </form>
-        </div>
-
-        <!-- Panel: resumen + lista -->
-        <div class="opinion-panel">
-          <h3>Resumen</h3>
-          <p id="totalOpiniones" style="color: #ccc; font-size: 14px"></p>
-
-          <div class="barras">
-            <div class="barra-item">
-              <div class="barra-track">
-                <div
-                  class="barra"
-                  id="barraBuenas"
-                  style="background: #00ff88"
-                ></div>
-              </div>
-              <div class="barra-text">
-                😀 Buenas<br />
-                <strong id="cantBuenas" style="color: #00ff88">0</strong>
-              </div>
-            </div>
-
-            <div class="barra-item">
-              <div class="barra-track">
-                <div
-                  class="barra"
-                  id="barraRegulares"
-                  style="background: #ffd700"
-                ></div>
-              </div>
-              <div class="barra-text">
-                😐 Regulares<br />
-                <strong id="cantRegulares" style="color: #ffd700">0</strong>
-              </div>
-            </div>
-
-            <div class="barra-item">
-              <div class="barra-track">
-                <div
-                  class="barra"
-                  id="barraMalas"
-                  style="background: #ff5555"
-                ></div>
-              </div>
-              <div class="barra-text">
-                😠 Malas<br />
-                <strong id="cantMalas" style="color: #ff5555">0</strong>
-              </div>
-            </div>
+          <label class="opinion-label">Calificación</label>
+          <div class="estrellas">
+            <span class="star" onclick="setClientRating(1)">★</span>
+            <span class="star" onclick="setClientRating(2)">★</span>
+            <span class="star" onclick="setClientRating(3)">★</span>
+            <span class="star" onclick="setClientRating(4)">★</span>
+            <span class="star" onclick="setClientRating(5)">★</span>
           </div>
 
-          <div class="lista-opiniones" id="opinionsContainer"></div>
+          <button type="submit" class="btn" style="width: 100%">
+            Enviar Opinión
+          </button>
+        </form>
+
+        <!-- Opiniones propias del usuario con sesión -->
+        <div id="misOpinionesBox" class="hidden" style="margin-top: 25px">
+          <h3>Tus opiniones</h3>
+          <div class="lista-opiniones" id="misOpiniones"></div>
         </div>
       </div>
-    </section>
-
-    <!-- CLIENTES -->
-    <section id="clientes" class="section hidden">
-      <h2>Lista de Clientes</h2>
-
-      <table class="tabla-clientes">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>DNI</th>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Equipo Comprado</th>
-          </tr>
-        </thead>
-
-        <tbody id="tbodyClientes">
-          <tr>
-            <td
-              colspan="5"
-              style="text-align: center; color: #999; padding: 20px"
-            >
-              Cargando clientes...
-            </td>
-          </tr>
-        </tbody>
-      </table>
     </section>
 
     <!-- CARRITO -->
@@ -423,6 +352,9 @@
 
         <h3 id="total">Total: S/ 0</h3>
 
+        <button class="btn" onclick="finalizarCompra()">
+          Finalizar Compra
+        </button>
         <button class="btn" onclick="cerrarCarrito()">Cerrar</button>
       </div>
     </div>

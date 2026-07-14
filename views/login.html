@@ -177,10 +177,10 @@
 
             <img src="../img/logo.png" class="logo">
 
-            <h2>Crear Cuenta</h2>
+            <h2>Crear Cuenta de Cliente</h2>
 
             <p class="texto">
-                Regístrate para ingresar
+                Regístrate para opinar y comprar
             </p>
 
             <form method="POST" action="../controllers/auth.php">
@@ -188,6 +188,12 @@
                 <input type="hidden" name="action" value="register">
 
                 <input type="text" name="usuario" placeholder="Nuevo usuario" required>
+
+                <input type="text" name="nombre" placeholder="Nombre completo" required>
+
+                <input type="text" name="dni" placeholder="DNI (8 dígitos)" maxlength="8" pattern="\d{8}" required>
+
+                <input type="text" name="telefono" placeholder="Teléfono (9 dígitos)" maxlength="9" pattern="\d{9}" required>
 
                 <div class="password-box">
 

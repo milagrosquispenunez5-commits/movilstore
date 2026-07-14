@@ -1,16 +1,9 @@
 <?php
-session_start();
+// Controlador de clientes: registrar y listar (solo administrador)
+require __DIR__ . '/../config/helpers.php';
 require __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
 
 // Crear la tabla si no existe
 $conn->query("CREATE TABLE IF NOT EXISTS clientes (
@@ -25,11 +18,7 @@ $conn->query("CREATE TABLE IF NOT EXISTS clientes (
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 if ($action === 'agregar_cliente') {
-    if (!isset($_SESSION['user_id'])) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Debes iniciar sesión para registrar clientes']);
-        exit;
-    }
+    requireAdmin();
 
     $dni = trim($_POST['dni'] ?? '');
     $nombre = trim($_POST['nombre'] ?? '');
@@ -68,6 +57,8 @@ if ($action === 'agregar_cliente') {
 }
 
 if ($action === 'listar_clientes') {
+    requireAdmin();
+
     $result = $conn->query('SELECT dni, nombre, telefono, modelo FROM clientes ORDER BY id ASC');
     $clientes = [];
 
